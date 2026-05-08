@@ -1,0 +1,126 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:background="@color/background"
+    android:gravity="center">
+
+    <!-- ブランド名 -->
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="VIRTUALFIT"
+        android:textSize="11sp"
+        android:letterSpacing="0.3"
+        android:textColor="@color/accent"
+        android:fontFamily="sans-serif-medium"
+        android:layout_marginBottom="48dp" />
+
+    <!-- ステップインジケーター（縦型） -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:paddingHorizontal="40dp">
+
+        <!-- Step 1 -->
+        <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:orientation="horizontal" android:gravity="center_vertical"
+            android:layout_marginBottom="4dp">
+            <View android:id="@+id/step1_dot"
+                android:layout_width="8dp" android:layout_height="8dp"
+                android:background="@drawable/step_dot_inactive" />
+            <TextView android:id="@+id/step1_label"
+                android:layout_width="wrap_content" android:layout_height="wrap_content"
+                android:text="スタイル解析"
+                android:textSize="13sp" android:textColor="@color/step_inactive"
+                android:layout_marginStart="16dp" android:letterSpacing="0.05" />
+        </LinearLayout>
+
+        <!-- Step 1→2 connector -->
+        <View android:layout_width="1dp" android:layout_height="20dp"
+            android:background="@color/step_inactive" android:layout_marginStart="3dp"
+            android:layout_marginBottom="4dp" />
+
+        <!-- Step 2 -->
+        <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:orientation="horizontal" android:gravity="center_vertical"
+            android:layout_marginBottom="4dp">
+            <View android:id="@+id/step2_dot"
+                android:layout_width="8dp" android:layout_height="8dp"
+                android:background="@drawable/step_dot_inactive" />
+            <TextView android:id="@+id/step2_label"
+                android:layout_width="wrap_content" android:layout_height="wrap_content"
+                android:text="商品を検索"
+                android:textSize="13sp" android:textColor="@color/step_inactive"
+                android:layout_marginStart="16dp" android:letterSpacing="0.05" />
+        </LinearLayout>
+
+        <!-- Step 2→3 connector -->
+        <View android:layout_width="1dp" android:layout_height="20dp"
+            android:background="@color/step_inactive" android:layout_marginStart="3dp"
+            android:layout_marginBottom="4dp" />
+
+        <!-- Step 3 -->
+        <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:orientation="horizontal" android:gravity="center_vertical"
+            android:layout_marginBottom="4dp">
+            <View android:id="@+id/step3_dot"
+                android:layout_width="8dp" android:layout_height="8dp"
+                android:background="@drawable/step_dot_inactive" />
+            <TextView android:id="@+id/step3_label"
+                android:layout_width="wrap_content" android:layout_height="wrap_content"
+                android:text="試着画像を生成"
+                android:textSize="13sp" android:textColor="@color/step_inactive"
+                android:layout_marginStart="16dp" android:letterSpacing="0.05" />
+        </LinearLayout>
+
+        <!-- Step 3→4 connector -->
+        <View android:layout_width="1dp" android:layout_height="20dp"
+            android:background="@color/step_inactive" android:layout_marginStart="3dp"
+            android:layout_marginBottom="4dp" />
+
+        <!-- Step 4 -->
+        <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:orientation="horizontal" android:gravity="center_vertical">
+            <View android:id="@+id/step4_dot"
+                android:layout_width="8dp" android:layout_height="8dp"
+                android:background="@drawable/step_dot_inactive" />
+            <TextView android:id="@+id/step4_label"
+                android:layout_width="wrap_content" android:layout_height="wrap_content"
+                android:text="スタイリング評価"
+                android:textSize="13sp" android:textColor="@color/step_inactive"
+                android:layout_marginStart="16dp" android:letterSpacing="0.05" />
+        </LinearLayout>
+
+    </LinearLayout>
+
+    <!-- 現在のステップのサブテキスト -->
+    <TextView
+        android:id="@+id/txt_step_detail"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="40dp"
+        android:textSize="12sp"
+        android:textColor="@color/on_surface_variant"
+        android:gravity="center"
+        android:lineSpacingMultiplier="1.4" />
+
+    <!-- プログレス -->
+    <ProgressBar
+        android:id="@+id/progress_bar"
+        android:layout_width="32dp"
+        android:layout_height="32dp"
+        android:layout_marginTop="16dp"
+        android:indeterminateTint="@color/accent" />
+
+    <!-- 非表示のステップテキスト（ProcessingActivityのコードとの互換用） -->
+    <TextView
+        android:id="@+id/txt_step"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:visibility="gone" />
+
+</LinearLayout>
+

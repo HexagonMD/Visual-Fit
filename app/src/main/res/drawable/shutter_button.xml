@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- 外側リング（白・半透明） -->
+    <item>
+        <shape android:shape="oval">
+            <stroke android:width="2dp" android:color="#CCFFFFFF" />
+            <solid android:color="#00000000" />
+        </shape>
+    </item>
+    <!-- 内側円（白） -->
+    <item
+        android:left="8dp"
+        android:top="8dp"
+        android:right="8dp"
+        android:bottom="8dp">
+        <shape android:shape="oval">
+            <solid android:color="#FFFFFF" />
+        </shape>
+    </item>
+</layer-list>
+

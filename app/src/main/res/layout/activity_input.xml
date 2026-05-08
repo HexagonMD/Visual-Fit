@@ -1,0 +1,211 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.core.widget.NestedScrollView
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/background"
+    android:fillViewport="true">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical">
+
+        <!-- ヘッダー -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:paddingHorizontal="24dp"
+            android:paddingTop="56dp"
+            android:paddingBottom="24dp"
+            android:gravity="center_vertical">
+
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:orientation="vertical">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="VIRTUALFIT"
+                    android:textSize="11sp"
+                    android:letterSpacing="0.25"
+                    android:textColor="@color/accent"
+                    android:fontFamily="sans-serif-medium" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="着たい服を\n入力してください"
+                    android:textSize="22sp"
+                    android:lineSpacingMultiplier="1.2"
+                    android:textColor="@color/on_surface"
+                    android:fontFamily="sans-serif-light"
+                    android:layout_marginTop="4dp" />
+            </LinearLayout>
+
+            <!-- 自撮りサムネイル -->
+            <ImageView
+                android:id="@+id/img_selfie_thumb"
+                android:layout_width="64dp"
+                android:layout_height="80dp"
+                android:scaleType="centerCrop"
+                android:background="@color/primary_container"
+                android:contentDescription="自撮り" />
+
+        </LinearLayout>
+
+        <!-- 区切り線 -->
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:background="@color/divider"
+            android:layout_marginHorizontal="24dp" />
+
+        <!-- 入力エリア -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:paddingHorizontal="24dp"
+            android:paddingTop="28dp">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="ITEM DESCRIPTION"
+                android:textSize="10sp"
+                android:letterSpacing="0.2"
+                android:textColor="@color/on_surface_variant"
+                android:fontFamily="sans-serif-medium" />
+
+            <!-- テキスト入力 -->
+            <EditText
+                android:id="@+id/edit_clothing"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="12dp"
+                android:background="@null"
+                android:hint="例：白いオーバーサイズTシャツとベージュのカーゴパンツ"
+                android:textColorHint="@color/step_inactive"
+                android:textColor="@color/on_surface"
+                android:textSize="15sp"
+                android:lineSpacingMultiplier="1.5"
+                android:minLines="3"
+                android:maxLines="5"
+                android:inputType="textMultiLine"
+                android:gravity="top"
+                android:paddingVertical="8dp" />
+
+            <!-- 下線 -->
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="1dp"
+                android:background="@color/on_surface"
+                android:layout_marginTop="4dp" />
+
+        </LinearLayout>
+
+        <!-- ヒントチップ -->
+        <HorizontalScrollView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:scrollbars="none"
+            android:paddingStart="24dp"
+            android:layout_marginTop="16dp"
+            android:clipToPadding="false">
+
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal">
+
+                <TextView
+                    android:id="@+id/chip1"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="白Tシャツ"
+                    android:textSize="12sp"
+                    android:textColor="@color/on_surface_variant"
+                    android:background="@drawable/chip_bg"
+                    android:paddingHorizontal="12dp"
+                    android:paddingVertical="6dp"
+                    android:layout_marginEnd="8dp" />
+
+                <TextView
+                    android:id="@+id/chip2"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="黒スキニー"
+                    android:textSize="12sp"
+                    android:textColor="@color/on_surface_variant"
+                    android:background="@drawable/chip_bg"
+                    android:paddingHorizontal="12dp"
+                    android:paddingVertical="6dp"
+                    android:layout_marginEnd="8dp" />
+
+                <TextView
+                    android:id="@+id/chip3"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="ベージュコート"
+                    android:textSize="12sp"
+                    android:textColor="@color/on_surface_variant"
+                    android:background="@drawable/chip_bg"
+                    android:paddingHorizontal="12dp"
+                    android:paddingVertical="6dp"
+                    android:layout_marginEnd="8dp" />
+
+                <TextView
+                    android:id="@+id/chip4"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="デニムジャケット"
+                    android:textSize="12sp"
+                    android:textColor="@color/on_surface_variant"
+                    android:background="@drawable/chip_bg"
+                    android:paddingHorizontal="12dp"
+                    android:paddingVertical="6dp"
+                    android:layout_marginEnd="24dp" />
+
+            </LinearLayout>
+        </HorizontalScrollView>
+
+        <!-- スペーサー -->
+        <View android:layout_width="match_parent" android:layout_height="32dp" />
+
+        <!-- ボタンエリア -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:paddingHorizontal="24dp"
+            android:paddingBottom="32dp">
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btn_start"
+                android:layout_width="match_parent"
+                android:layout_height="52dp"
+                android:text="TRY IT ON"
+                android:textSize="13sp"
+                android:letterSpacing="0.15"
+                style="@style/Button.Primary" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btn_retake"
+                android:layout_width="match_parent"
+                android:layout_height="52dp"
+                android:layout_marginTop="10dp"
+                android:text="RETAKE PHOTO"
+                android:textSize="13sp"
+                android:letterSpacing="0.15"
+                style="@style/Button.Outline" />
+
+        </LinearLayout>
+
+    </LinearLayout>
+</androidx.core.widget.NestedScrollView>

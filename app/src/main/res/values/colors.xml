@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="black">#FF000000</color>
+    <color name="white">#FFFFFFFF</color>
+
+    <!-- VirtualFit カラーパレット -->
+    <color name="background">#FAFAF8</color>       <!-- オフホワイト -->
+    <color name="surface">#FFFFFF</color>
+    <color name="on_surface">#1A1A1A</color>        <!-- ほぼ黒 -->
+    <color name="on_surface_variant">#6B6B6B</color><!-- グレー -->
+    <color name="divider">#E8E8E4</color>
+
+    <color name="primary">#1A1A1A</color>           <!-- ブラック -->
+    <color name="on_primary">#FFFFFF</color>
+    <color name="primary_container">#F0EDE8</color> <!-- クリーム -->
+
+    <color name="accent">#B8936A</color>            <!-- カメル（ファッション色） -->
+    <color name="accent_light">#F5EDE3</color>
+
+    <color name="error">#C0392B</color>
+    <color name="step_done">#2D7A4F</color>         <!-- 完了: グリーン -->
+    <color name="step_active">#1A1A1A</color>       <!-- 実行中: ブラック -->
+    <color name="step_inactive">#D5D5D0</color>     <!-- 未実行: グレー -->
+</resources>
