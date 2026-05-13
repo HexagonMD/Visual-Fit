@@ -15,7 +15,6 @@ import android.hardware.camera2.CameraManager;
 import android.hardware.camera2.CaptureRequest;
 import android.net.Uri;
 import android.os.Bundle;
-import android.os.CountDownTimer;
 import android.os.Environment;
 import android.os.Handler;
 import android.os.Looper;
@@ -70,8 +69,10 @@ public class CameraActivity extends AppCompatActivity {
     private boolean isFrontCamera = false;
 
     // Timer
+    // CountDownTimer は最後のonTickがスキップされる既知バグがあるためHandler/Runnableで代替
     private int timerSeconds = 0;
-    private CountDownTimer countDownTimer;
+    private Handler countDownHandler;
+    private Runnable countDownRunnable;
     private boolean isCapturing = false;
 
     private File selfieFile;
@@ -307,29 +308,53 @@ public class CameraActivity extends AppCompatActivity {
         txtCountdown.setVisibility(View.VISIBLE);
         txtTimerIndicator.setVisibility(View.VISIBLE);
 
-        countDownTimer = new CountDownTimer(seconds * 1000L, 1000) {
+        // CountDownTimer は最後のonTickがスキップされるバグがあるため
+        // Handler + postDelayed で自前実装（3秒→3,2,1と確実に表示）
+        countDownHandler = new Handler(Looper.getMainLooper());
+        final int[] remaining = {seconds};
+
+        // 初回即座に表示
+        updateCountdownUI(remaining[0]);
+
+        countDownRunnable = new Runnable() {
             @Override
-            public void onTick(long millisUntilFinished) {
-                long remaining = (millisUntilFinished / 1000) + 1;
-                txtCountdown.setText(String.valueOf(remaining));
-                txtTimerIndicator.setText(String.valueOf(remaining));
-                txtCountdown.setAlpha(1f);
-                txtCountdown.animate().alpha(0.3f).setDuration(800).start();
+            public void run() {
+                remaining[0]--;
+                if (remaining[0] > 0) {
+                    // まだカウント中
+                    updateCountdownUI(remaining[0]);
+                    countDownHandler.postDelayed(this, 1000);
+                } else {
+                    // カウント完了 → 「1」をフェードアウトしてから即撮影
+                    txtTimerIndicator.setVisibility(View.INVISIBLE);
+                    txtCountdown.animate()
+                            .alpha(0f)
+                            .setDuration(250)
+                            .withEndAction(() -> {
+                                txtCountdown.setVisibility(View.GONE);
+                                txtCountdown.setAlpha(1f); // 次回用にリセット
+                                takePicture();
+                            }).start();
+                }
             }
-            @Override
-            public void onFinish() {
-                txtCountdown.setVisibility(View.GONE);
-                txtTimerIndicator.setVisibility(View.INVISIBLE);
-                takePicture();
-            }
-        }.start();
+        };
+        countDownHandler.postDelayed(countDownRunnable, 1000);
+    }
+
+    /** カウントダウン数字UIを更新（点滅アニメーション付き） */
+    private void updateCountdownUI(int count) {
+        txtCountdown.setText(String.valueOf(count));
+        txtTimerIndicator.setText(String.valueOf(count));
+        txtCountdown.setAlpha(1f);
+        txtCountdown.animate().alpha(0.3f).setDuration(800).start();
     }
 
     private void cancelCountdown() {
-        if (countDownTimer != null) {
-            countDownTimer.cancel();
-            countDownTimer = null;
+        if (countDownHandler != null && countDownRunnable != null) {
+            countDownHandler.removeCallbacks(countDownRunnable);
         }
+        countDownHandler = null;
+        countDownRunnable = null;
         isCapturing = false;
         runOnUiThread(() -> {
             txtCountdown.setVisibility(View.GONE);
