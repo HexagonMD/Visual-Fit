@@ -115,6 +115,18 @@
         android:layout_marginTop="16dp"
         android:indeterminateTint="@color/accent" />
 
+    <!-- エラー時に表示される戻るボタン（通常は非表示） -->
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/btn_retry_back"
+        android:layout_width="wrap_content"
+        android:layout_height="48dp"
+        android:layout_marginTop="24dp"
+        android:text="← 戻って再試行"
+        android:textSize="13sp"
+        android:letterSpacing="0.1"
+        android:visibility="gone"
+        style="@style/Button.Outline" />
+
     <!-- 非表示のステップテキスト（ProcessingActivityのコードとの互換用） -->
     <TextView
         android:id="@+id/txt_step"

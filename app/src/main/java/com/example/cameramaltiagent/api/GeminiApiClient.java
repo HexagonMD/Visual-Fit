@@ -25,6 +25,8 @@ public class GeminiApiClient {
 
     private static final String BASE_URL =
             "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent";
+    private static final String IMAGE_GEN_URL =
+            "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-image:generateContent";
     private static final MediaType JSON = MediaType.get("application/json; charset=utf-8");
 
     private final OkHttpClient client;
@@ -34,7 +36,8 @@ public class GeminiApiClient {
         this.apiKey = BuildConfig.GEMINI_API_KEY;
         this.client = new OkHttpClient.Builder()
                 .connectTimeout(30, TimeUnit.SECONDS)
-                .readTimeout(60, TimeUnit.SECONDS)
+                .readTimeout(120, TimeUnit.SECONDS)
+                .writeTimeout(60, TimeUnit.SECONDS)
                 .build();
     }
 
@@ -119,6 +122,129 @@ public class GeminiApiClient {
         body.put("contents", contents);
 
         return executeRequest(body);
+    }
+
+    /**
+     * テキストのみで画像生成（人物写真なし）。
+     * TryOnAgentのStep2で使用。ポリシー問題を回避するため実写真を渡さない。
+     * モデル: gemini-2.5-flash-image
+     *
+     * @return PNG画像のバイト列（失敗時はnull）
+     */
+    public byte[] generateImageFromText(String prompt) throws IOException, JSONException {
+        JSONObject body = new JSONObject();
+        JSONArray contents = new JSONArray();
+        JSONObject content = new JSONObject();
+        JSONArray parts = new JSONArray();
+
+        JSONObject textPart = new JSONObject();
+        textPart.put("text", prompt);
+        parts.put(textPart);
+
+        content.put("parts", parts);
+        content.put("role", "user");
+        contents.put(content);
+        body.put("contents", contents);
+
+        JSONObject genConfig = new JSONObject();
+        JSONArray modalities = new JSONArray();
+        modalities.put("IMAGE");
+        modalities.put("TEXT");
+        genConfig.put("responseModalities", modalities);
+        body.put("generationConfig", genConfig);
+
+        String url = IMAGE_GEN_URL + "?key=" + apiKey;
+        RequestBody reqBody = RequestBody.create(body.toString(), JSON);
+        Request request = new Request.Builder()
+                .url(url)
+                .post(reqBody)
+                .build();
+
+        try (Response response = client.newCall(request).execute()) {
+            String responseBody = response.body() != null ? response.body().string() : "";
+            if (!response.isSuccessful()) {
+                throw new IOException("Gemini ImageGen error: " + response.code() + " " + responseBody);
+            }
+            JSONObject json = new JSONObject(responseBody);
+            JSONArray responseParts = json.getJSONArray("candidates")
+                    .getJSONObject(0)
+                    .getJSONObject("content")
+                    .getJSONArray("parts");
+            for (int i = 0; i < responseParts.length(); i++) {
+                JSONObject part = responseParts.getJSONObject(i);
+                if (part.has("inlineData")) {
+                    String b64 = part.getJSONObject("inlineData").getString("data");
+                    return Base64.decode(b64, Base64.NO_WRAP);
+                }
+            }
+            return null;
+        }
+    }
+
+    /**
+     * @deprecated Step2方式（generateImageFromText）を使用してください
+     */
+    public byte[] generateTryOnImage(String prompt, byte[] selfieBytes)
+            throws IOException, JSONException {
+        JSONObject body = new JSONObject();
+        JSONArray contents = new JSONArray();
+        JSONObject content = new JSONObject();
+        JSONArray parts = new JSONArray();
+
+        // 自撮りをbase64インラインで送信
+        JSONObject imagePart = new JSONObject();
+        JSONObject inlineData = new JSONObject();
+        inlineData.put("mimeType", "image/jpeg");
+        inlineData.put("data", Base64.encodeToString(selfieBytes, Base64.NO_WRAP));
+        imagePart.put("inlineData", inlineData);
+        parts.put(imagePart);
+
+        // テキストプロンプト
+        JSONObject textPart = new JSONObject();
+        textPart.put("text", prompt);
+        parts.put(textPart);
+
+        content.put("parts", parts);
+        content.put("role", "user");
+        contents.put(content);
+        body.put("contents", contents);
+
+        // IMAGE出力を要求
+        JSONObject genConfig = new JSONObject();
+        JSONArray modalities = new JSONArray();
+        modalities.put("IMAGE");
+        modalities.put("TEXT");
+        genConfig.put("responseModalities", modalities);
+        body.put("generationConfig", genConfig);
+
+        String url = IMAGE_GEN_URL + "?key=" + apiKey;
+        RequestBody reqBody = RequestBody.create(body.toString(), JSON);
+        Request request = new Request.Builder()
+                .url(url)
+                .post(reqBody)
+                .build();
+
+        try (Response response = client.newCall(request).execute()) {
+            String responseBody = response.body() != null ? response.body().string() : "";
+            if (!response.isSuccessful()) {
+                throw new IOException("Gemini ImageGen error: " + response.code() + " " + responseBody);
+            }
+            JSONObject json = new JSONObject(responseBody);
+            JSONArray responseParts = json.getJSONArray("candidates")
+                    .getJSONObject(0)
+                    .getJSONObject("content")
+                    .getJSONArray("parts");
+
+            // parts の中からinlineData（画像）を探す
+            for (int i = 0; i < responseParts.length(); i++) {
+                JSONObject part = responseParts.getJSONObject(i);
+                if (part.has("inlineData")) {
+                    String b64 = part.getJSONObject("inlineData").getString("data");
+                    return Base64.decode(b64, Base64.NO_WRAP);
+                }
+            }
+            return null; // 画像パートなし
+        }
     }
 
     private String executeRequest(JSONObject body) throws IOException, JSONException {

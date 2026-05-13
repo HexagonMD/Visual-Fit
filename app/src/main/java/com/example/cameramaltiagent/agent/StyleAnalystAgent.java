@@ -35,14 +35,22 @@ public class StyleAnalystAgent {
         return "以下の服装説明を解析し、必ずJSON形式のみで返してください。\n"
                 + "JSON以外のテキストは絶対に含めないでください。\n\n"
                 + "服装説明: 「" + clothingText + "」\n\n"
-                + "返すべきJSON（このフォーマットで必ず返してください）:\n"
+                + "【判定ルール】\n"
+                + "- 上着（Tシャツ・シャツ・ジャケット等）と下着（パンツ・スカート等）の両方が含まれていれば is_compound=true\n"
+                + "- top_search_query_ja: 上着だけの短い検索ワード（2〜3語）\n"
+                + "- bottom_search_query_ja: 下着だけの短い検索ワード（2〜3語）\n"
+                + "- search_query_ja: 単品の場合のみ使用（is_compound=falseのとき）\n"
+                + "- garment_description_for_tryon: コーデ全体の詳細な英語説明\n\n"
+                + "返すべきJSON:\n"
                 + "{\n"
+                + "  \"is_compound\": true,\n"
                 + "  \"garment_type\": \"T-shirt\",\n"
-                + "  \"color\": \"brown\",\n"
-                + "  \"search_query_ja\": \"茶色 半袖 Tシャツ メンズ\",\n"
-                + "  \"search_query_en\": \"brown short sleeve t-shirt\",\n"
-                + "  \"garment_description_for_tryon\": \"brown short sleeve cotton t-shirt, casual style\",\n"
-                + "  \"season\": \"summer\"\n"
+                + "  \"color\": \"white\",\n"
+                + "  \"search_query_ja\": \"白 オーバーサイズ Tシャツ\",\n"
+                + "  \"top_search_query_ja\": \"白 オーバーサイズ Tシャツ\",\n"
+                + "  \"bottom_search_query_ja\": \"黒 スキニーパンツ\",\n"
+                + "  \"garment_description_for_tryon\": \"white oversized t-shirt and black skinny pants, casual street style\",\n"
+                + "  \"season\": \"spring\"\n"
                 + "}";
     }
 
@@ -67,12 +75,15 @@ public class StyleAnalystAgent {
 
         JSONObject json = new JSONObject(jsonStr);
         StyleAnalysis analysis = new StyleAnalysis();
-        analysis.garmentType = json.optString("garment_type", "");
-        analysis.color = json.optString("color", "");
-        analysis.searchQueryJa = json.optString("search_query_ja", "");
-        analysis.searchQueryEn = json.optString("search_query_en", "");
-        analysis.garmentDescForTryOn = json.optString("garment_description_for_tryon", "");
-        analysis.season = json.optString("season", "");
+        analysis.garmentType          = json.optString("garment_type", "");
+        analysis.color                = json.optString("color", "");
+        analysis.searchQueryJa        = json.optString("search_query_ja", "");
+        analysis.searchQueryEn        = json.optString("search_query_en", "");
+        analysis.garmentDescForTryOn  = json.optString("garment_description_for_tryon", "");
+        analysis.season               = json.optString("season", "");
+        analysis.isCompound           = json.optBoolean("is_compound", false);
+        analysis.topSearchQueryJa     = json.optString("top_search_query_ja", "");
+        analysis.bottomSearchQueryJa  = json.optString("bottom_search_query_ja", "");
         return analysis;
     }
 }

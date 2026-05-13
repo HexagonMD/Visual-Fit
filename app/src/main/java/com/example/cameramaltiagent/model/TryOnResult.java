@@ -10,15 +10,17 @@ public class TryOnResult {
     public String tryOnDescription;  // GeminiのAI試着描写
     public long durationMs;          // 処理時間(ms)
     public boolean success;
+    public boolean isLocalFile;      // true=ローカルファイル, false=URL
     public String failureReason;
 
     public TryOnResult() {}
 
     public TryOnResult(String outputImageUrl, String tryOnDescription, long durationMs) {
-        this.outputImageUrl = outputImageUrl;
+        this.outputImageUrl   = outputImageUrl;
         this.tryOnDescription = tryOnDescription;
-        this.durationMs = durationMs;
-        this.success = true;
+        this.durationMs       = durationMs;
+        this.success          = true;
+        this.isLocalFile      = false;
     }
 
     public static TryOnResult failure() {
@@ -29,9 +31,8 @@ public class TryOnResult {
 
     public static TryOnResult failure(String reason) {
         TryOnResult r = new TryOnResult();
-        r.success = false;
+        r.success       = false;
         r.failureReason = reason;
         return r;
     }
 }
-

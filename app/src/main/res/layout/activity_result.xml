@@ -23,13 +23,12 @@
                 android:background="@color/primary_container"
                 android:contentDescription="試着結果" />
 
-            <!-- 左上: ブランドロゴ -->
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_gravity="top|start"
                 android:layout_margin="16dp"
-                android:text="VIRTUALFIT"
+                android:text="VISUAL FIT"
                 android:textSize="10sp"
                 android:letterSpacing="0.25"
                 android:textColor="#CCFFFFFF"
@@ -37,35 +36,6 @@
                 android:background="#33000000"
                 android:paddingHorizontal="8dp"
                 android:paddingVertical="4dp" />
-
-            <!-- 右下: 商品価格バッジ -->
-            <LinearLayout
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_gravity="bottom|end"
-                android:layout_margin="16dp"
-                android:background="#F0FFFFFF"
-                android:paddingHorizontal="12dp"
-                android:paddingVertical="8dp"
-                android:orientation="vertical">
-
-                <TextView
-                    android:id="@+id/txt_product_price"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:textSize="16sp"
-                    android:textStyle="bold"
-                    android:textColor="@color/on_surface" />
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="楽天市場"
-                    android:textSize="9sp"
-                    android:textColor="@color/on_surface_variant"
-                    android:letterSpacing="0.05" />
-            </LinearLayout>
-
         </FrameLayout>
 
         <!-- コンテンツエリア -->
@@ -77,65 +47,159 @@
             android:paddingTop="24dp"
             android:paddingBottom="40dp">
 
-            <!-- 商品名 -->
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="SELECTED ITEM"
-                android:textSize="10sp"
-                android:letterSpacing="0.2"
-                android:textColor="@color/accent"
-                android:fontFamily="sans-serif-medium" />
-
-            <TextView
-                android:id="@+id/txt_product_name"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="4dp"
-                android:textSize="15sp"
-                android:textColor="@color/on_surface"
-                android:lineSpacingMultiplier="1.3"
-                android:maxLines="2"
-                android:ellipsize="end" />
-
-            <!-- 区切り線 -->
-            <View
-                android:layout_width="match_parent"
-                android:layout_height="1dp"
-                android:background="@color/divider"
-                android:layout_marginTop="20dp"
-                android:layout_marginBottom="20dp" />
-
-            <!-- AI試着レポート -->
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="AI TRY-ON REPORT"
-                android:textSize="10sp"
-                android:letterSpacing="0.2"
-                android:textColor="@color/accent"
-                android:fontFamily="sans-serif-medium" />
-
+            <!-- AI試着レポート（テキストフォールバック時のみ表示） -->
             <TextView
                 android:id="@+id/txt_tryon_description"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="10dp"
                 android:textSize="13sp"
                 android:textColor="@color/on_surface"
                 android:lineSpacingMultiplier="1.6"
                 android:fontFamily="sans-serif-light"
+                android:layout_marginBottom="20dp"
                 android:visibility="gone" />
 
-            <!-- 区切り線 -->
-            <View
+            <!-- SELECTED ITEM ラベル -->
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="SELECTED ITEMS"
+                android:textSize="10sp"
+                android:letterSpacing="0.2"
+                android:textColor="@color/accent"
+                android:fontFamily="sans-serif-medium" />
+
+            <!-- TOP 商品カード -->
+            <LinearLayout
+                android:id="@+id/card_top_product"
                 android:layout_width="match_parent"
-                android:layout_height="1dp"
-                android:background="@color/divider"
-                android:layout_marginTop="20dp"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:layout_marginTop="10dp"
+                android:background="#F5F5F0"
+                android:padding="12dp"
+                android:gravity="center_vertical">
+
+                <ImageView
+                    android:id="@+id/img_product"
+                    android:layout_width="64dp"
+                    android:layout_height="64dp"
+                    android:scaleType="centerCrop"
+                    android:background="@color/primary_container" />
+
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:orientation="vertical"
+                    android:paddingStart="12dp">
+
+                    <TextView
+                        android:id="@+id/txt_product_label"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:textSize="9sp"
+                        android:letterSpacing="0.15"
+                        android:textColor="@color/accent"
+                        android:fontFamily="sans-serif-medium"
+                        android:visibility="gone" />
+
+                    <TextView
+                        android:id="@+id/txt_product_name"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:textSize="13sp"
+                        android:textColor="@color/on_surface"
+                        android:maxLines="2"
+                        android:ellipsize="end" />
+
+                    <TextView
+                        android:id="@+id/txt_product_price"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="4dp"
+                        android:textSize="13sp"
+                        android:textStyle="bold"
+                        android:textColor="@color/on_surface" />
+                </LinearLayout>
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="→"
+                    android:textSize="18sp"
+                    android:textColor="@color/accent" />
+            </LinearLayout>
+
+            <!-- BOTTOM 商品カード（複合コーデ時のみ表示） -->
+            <LinearLayout
+                android:id="@+id/card_bottom_product"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:layout_marginTop="8dp"
+                android:background="#F5F5F0"
+                android:padding="12dp"
+                android:gravity="center_vertical"
+                android:visibility="gone">
+
+                <ImageView
+                    android:id="@+id/img_product"
+                    android:layout_width="64dp"
+                    android:layout_height="64dp"
+                    android:scaleType="centerCrop"
+                    android:background="@color/primary_container" />
+
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:orientation="vertical"
+                    android:paddingStart="12dp">
+
+                    <TextView
+                        android:id="@+id/txt_product_label"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:textSize="9sp"
+                        android:letterSpacing="0.15"
+                        android:textColor="@color/accent"
+                        android:fontFamily="sans-serif-medium"
+                        android:visibility="gone" />
+
+                    <TextView
+                        android:id="@+id/txt_product_name"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:textSize="13sp"
+                        android:textColor="@color/on_surface"
+                        android:maxLines="2"
+                        android:ellipsize="end" />
+
+                    <TextView
+                        android:id="@+id/txt_product_price"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="4dp"
+                        android:textSize="13sp"
+                        android:textStyle="bold"
+                        android:textColor="@color/on_surface" />
+                </LinearLayout>
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="→"
+                    android:textSize="18sp"
+                    android:textColor="@color/accent" />
+            </LinearLayout>
+
+            <!-- 区切り線 -->
+            <View android:layout_width="match_parent" android:layout_height="1dp"
+                android:background="@color/divider" android:layout_marginTop="20dp"
                 android:layout_marginBottom="20dp" />
 
-            <!-- スタイリストコメント -->
+            <!-- STYLIST'S NOTE -->
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
@@ -155,23 +219,74 @@
                 android:lineSpacingMultiplier="1.7"
                 android:fontFamily="sans-serif-light" />
 
-            <!-- 購入ボタン -->
-            <com.google.android.material.button.MaterialButton
-                android:id="@+id/btn_purchase"
-                android:layout_width="match_parent"
-                android:layout_height="52dp"
-                android:layout_marginTop="28dp"
-                android:text="SHOP NOW"
-                android:textSize="13sp"
-                android:letterSpacing="0.15"
-                style="@style/Button.Primary" />
+            <!-- 区切り線 -->
+            <View android:layout_width="match_parent" android:layout_height="1dp"
+                android:background="@color/divider" android:layout_marginTop="20dp"
+                android:layout_marginBottom="20dp" />
 
-            <!-- やり直しボタン -->
+            <!-- AI修正チャット -->
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="AI REFINEMENT"
+                android:textSize="10sp"
+                android:letterSpacing="0.2"
+                android:textColor="@color/on_surface_variant"
+                android:fontFamily="sans-serif-medium" />
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="6dp"
+                android:text="着こなしを変更したい場合は入力してください"
+                android:textSize="12sp"
+                android:textColor="@color/on_surface_variant" />
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:layout_marginTop="10dp"
+                android:gravity="center_vertical">
+
+                <EditText
+                    android:id="@+id/et_refinement"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:hint="例：もっとカジュアルに、靴も追加して..."
+                    android:textSize="13sp"
+                    android:inputType="text"
+                    android:background="#F0F0EC"
+                    android:paddingHorizontal="12dp"
+                    android:paddingVertical="10dp" />
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btn_send_refinement"
+                    android:layout_width="wrap_content"
+                    android:layout_height="48dp"
+                    android:layout_marginStart="8dp"
+                    android:text="送信"
+                    android:textSize="13sp"
+                    style="@style/Button.Primary" />
+            </LinearLayout>
+
+            <TextView
+                android:id="@+id/txt_refinement_status"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:textSize="12sp"
+                android:textColor="@color/on_surface_variant"
+                android:gravity="center"
+                android:visibility="gone" />
+
+            <!-- 購入・やり直しボタン -->
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/btn_retry"
                 android:layout_width="match_parent"
                 android:layout_height="52dp"
-                android:layout_marginTop="10dp"
+                android:layout_marginTop="24dp"
                 android:text="TRY ANOTHER LOOK"
                 android:textSize="13sp"
                 android:letterSpacing="0.15"

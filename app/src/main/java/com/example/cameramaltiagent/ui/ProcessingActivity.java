@@ -35,6 +35,8 @@ public class ProcessingActivity extends AppCompatActivity {
     private MockAgentPipeline mockPipeline;
     private TextView txtStep;
     private TextView txtStepDetail;
+    private android.view.View progressBar;
+    private android.view.View btnRetryBack;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -43,6 +45,11 @@ public class ProcessingActivity extends AppCompatActivity {
 
         txtStep = findViewById(R.id.txt_step);
         txtStepDetail = findViewById(R.id.txt_step_detail);
+        progressBar = findViewById(R.id.progress_bar);
+        btnRetryBack = findViewById(R.id.btn_retry_back);
+
+        // 戻るボタン → InputActivityに戻る
+        btnRetryBack.setOnClickListener(v -> finish());
 
         String selfiePath = getIntent().getStringExtra(CameraActivity.EXTRA_SELFIE_PATH);
         String clothingText = getIntent().getStringExtra(EXTRA_CLOTHING_TEXT);
@@ -68,13 +75,15 @@ public class ProcessingActivity extends AppCompatActivity {
             @Override
             public void onError(String errorMessage) {
                 txtStep.setText("❌ エラーが発生しました");
-                txtStepDetail.setText(errorMessage + "\n\n戻るボタンで再試行してください");
+                txtStepDetail.setText(errorMessage);
+                progressBar.setVisibility(View.GONE);
+                btnRetryBack.setVisibility(View.VISIBLE);
             }
         };
 
         if (MOCK_MODE) {
             // APIキー未設定 → モックで動作確認
-            txtStepDetail.setText("🧪 モックモードで動作中（APIキー未設定）");
+            txtStepDetail.setText(" モックモードで動作中（APIキー未設定）");
             mockPipeline = new MockAgentPipeline();
             mockPipeline.execute(new File(selfiePath != null ? selfiePath : ""), clothingText, callback);
         } else {

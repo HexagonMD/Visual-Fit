@@ -12,6 +12,10 @@ public class StyleAnalysis {
     public String garmentDescForTryOn;  // IDM-VTON の garment_des に使用
     public String season;               // 例: "summer"
 
+    // 複合コーデ用
+    public boolean isCompound;           // TOP+BOTTOMが含まれているか
+    public String topSearchQueryJa;      // 上着の検索クエリ（例：「白 オーバーサイズ Tシャツ」）
+    public String bottomSearchQueryJa;   // 下着の検索クエリ（例：「黒 スキニーパンツ」）
+
     public StyleAnalysis() {}
 }
-

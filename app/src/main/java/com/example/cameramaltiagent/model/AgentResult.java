@@ -8,14 +8,14 @@ import java.util.List;
 public class AgentResult {
     public StyleAnalysis styleAnalysis;
     public List<Product> products;
-    public Product selectedProduct;   // TryOnに使った商品
+    public Product selectedProduct;   // 単品 or TOP商品
+    public Product bottomProduct;     // 複合コーデのBOTTOM商品（null=単品）
     public TryOnResult tryOnResult;
-    public String stylingComment;     // Agent4のコメント
-    public String errorMessage;       // エラー発生時のメッセージ
+    public String stylingComment;
+    public String errorMessage;
     public boolean success;
 
     public AgentResult() {
         this.success = false;
     }
 }
-
