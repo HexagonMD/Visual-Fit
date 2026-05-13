@@ -17,10 +17,18 @@
 
 ## 機能概要
 
-1. カメラで自分を撮影する
-2. 「こんな服が欲しい」とテキストで入力するだけで候補商品を検索
-3. 自分の写真に実際の商品画像を合成してバーチャル試着
-4. 試着結果をもとにコーディネートのコメントを生成
+「白いリネンシャツが欲しい」とテキストを入力して撮影ボタンを押すだけで、楽天市場から候補商品を自動取得し、自分の写真にその服を合成したバーチャル試着画像とコーディネートコメントが返ってきます。
+
+試着→購入を1アプリで完結させることをゴールとして、以下の処理を自動化しています。
+
+| ステップ | 処理内容 |
+|---------|---------|
+| 1. 撮影 | Camera2 API でその場で自撮り |
+| 2. テキスト入力 | 欲しい服をテキストで自由記述 |
+| 3. 商品検索 | 入力を解析して楽天市場 API で商品を自動検索 |
+| 4. バーチャル試着 | Replicate IDM-VTON で自分の写真に服を合成 |
+| 5. コメント生成 | 試着画像をもとにコーディネートアドバイスを生成 |
+| 6. 購入へ | 気に入った商品はそのまま購入ページへ遷移 |
 
 ---
 
@@ -54,29 +62,21 @@ rakuten_app_id=YOUR_RAKUTEN_APP_ID
 
 ## アーキテクチャ
 
-```
-[CameraActivity]──selfieUri──▶[InputActivity]
-                                     │ (selfieUri + clothingText)
-                                     ▼
-                            [ProcessingActivity]
-                                     │
-                            [AgentPipeline] ← ExecutorService
-                                     │
-          ┌──────────────────────────┼───────────────────────────┐
-          ▼                          ▼                           ▼
-[StyleAnalystAgent]       [ShoppingAgent]              [TryOnAgent]
-    Gemini API              Rakuten API              Replicate IDM-VTON
-    テキスト構造化          商品検索・URLリスト         バーチャル試着画像
-          │                     │                           │
-          └──────────┬──────────┘                           │
-                     ▼                                      │
-              [StylistAgent] ◀──────────────────────────────┘
-               Gemini API (multimodal)
-               スタイリングコメント生成
-                     │
-                     ▼
-            [ResultActivity]
-          試着画像／購入リンク／コメント表示
+```mermaid
+flowchart TD
+    A[CameraActivity\n自撮り撮影] -->|selfieUri| B[InputActivity\nテキスト入力]
+    B -->|selfieUri + clothingText| C[ProcessingActivity\n進捗表示]
+    C --> D[AgentPipeline\nExecutorService]
+
+    D --> E[StyleAnalystAgent\nGemini API\nテキスト構造化]
+    D --> F[ShoppingAgent\nRakuten API\n商品検索]
+    D --> G[TryOnAgent\nReplicate IDM-VTON\nバーチャル試着]
+
+    E -->|StyleAnalysis| H[StylistAgent\nGemini API multimodal\nコメント生成]
+    F -->|List&lt;Product&gt;| H
+    G -->|TryOnResult| H
+
+    H --> I[ResultActivity\n試着画像・購入リンク・コメント表示]
 ```
 
 ---
