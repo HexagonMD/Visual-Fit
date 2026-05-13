@@ -27,13 +27,15 @@ import okhttp3.Response;
 public class ShoppingApiClient {
 
     private static final String RAKUTEN_BASE_URL =
-            "https://app.rakuten.co.jp/services/api/IchibaItem/Search/20170706";
+            "https://openapi.rakuten.co.jp/ichibams/api/IchibaItem/Search/20260401";
 
     private final OkHttpClient client;
     private final String appId;
+    private final String accessKey;
 
     public ShoppingApiClient() {
         this.appId = BuildConfig.RAKUTEN_APP_ID;
+        this.accessKey = BuildConfig.RAKUTEN_ACCESS_KEY;
         this.client = new OkHttpClient.Builder()
                 .connectTimeout(15, TimeUnit.SECONDS)
                 .readTimeout(30, TimeUnit.SECONDS)
@@ -49,20 +51,28 @@ public class ShoppingApiClient {
         String encodedQuery = URLEncoder.encode(query, StandardCharsets.UTF_8.name());
         String url = RAKUTEN_BASE_URL
                 + "?format=json"
+                + "&formatVersion=2"
                 + "&keyword=" + encodedQuery
                 + "&applicationId=" + appId
+                + "&accessKey=" + accessKey
                 + "&hits=" + hits
                 + "&imageFlag=1"
-                + "&genreId=100371"  // ファッションジャンル
+                + "&genreId=100371"
                 + "&sort=standard";
 
-        Request request = new Request.Builder().url(url).get().build();
+        Request request = new Request.Builder()
+                .url(url)
+                .addHeader("Referer", "https://github.com/HexagonMD/Visual-Fit")
+                .addHeader("Origin", "https://github.com")
+                .get()
+                .build();
 
         try (Response response = client.newCall(request).execute()) {
-            if (!response.isSuccessful() || response.body() == null) {
-                throw new IOException("Rakuten API error: " + response.code());
+            String bodyStr = response.body() != null ? response.body().string() : "null";
+            if (!response.isSuccessful()) {
+                throw new IOException("Rakuten API error: " + response.code() + " body=" + bodyStr);
             }
-            return parseProducts(new JSONObject(response.body().string()));
+            return parseProducts(new JSONObject(bodyStr));
         }
     }
 
@@ -70,14 +80,14 @@ public class ShoppingApiClient {
         List<Product> products = new ArrayList<>();
         JSONArray items = json.getJSONArray("Items");
         for (int i = 0; i < items.length(); i++) {
-            JSONObject item = items.getJSONObject(i).getJSONObject("Item");
+            // formatVersion=2: Items[i].itemName （itemネスト不要）
+            JSONObject item = items.getJSONObject(i);
 
             String name = item.getString("itemName");
             String purchaseUrl = item.getString("itemUrl");
             String price = item.getString("itemPrice") + "円";
             String shopName = item.getString("shopName");
 
-            // 商品画像URL（TryOnAgentのガーメント画像として使用）
             String imageUrl = "";
             JSONArray images = item.optJSONArray("mediumImageUrls");
             if (images != null && images.length() > 0) {
@@ -91,4 +101,3 @@ public class ShoppingApiClient {
         return products;
     }
 }
-

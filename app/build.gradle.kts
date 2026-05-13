@@ -32,6 +32,8 @@ android {
             "\"${localProps.getProperty("replicate_api_token", "")}\"")
         buildConfigField("String", "RAKUTEN_APP_ID",
             "\"${localProps.getProperty("rakuten_app_id", "")}\"")
+        buildConfigField("String", "RAKUTEN_ACCESS_KEY",
+            "\"${localProps.getProperty("rakuten_access_key", "")}\"")
     }
 
     buildFeatures {
