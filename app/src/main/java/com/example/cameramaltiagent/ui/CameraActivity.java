@@ -5,6 +5,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.graphics.SurfaceTexture;
 import android.hardware.camera2.CameraAccessException;
 import android.hardware.camera2.CameraCaptureSession;
@@ -12,6 +13,7 @@ import android.hardware.camera2.CameraCharacteristics;
 import android.hardware.camera2.CameraDevice;
 import android.hardware.camera2.CameraManager;
 import android.hardware.camera2.CaptureRequest;
+import android.net.Uri;
 import android.os.Bundle;
 import android.os.CountDownTimer;
 import android.os.Environment;
@@ -26,6 +28,8 @@ import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
@@ -34,13 +38,15 @@ import com.example.cameramaltiagent.R;
 
 import java.io.File;
 import java.io.FileOutputStream;
+import java.io.InputStream;
 import java.util.Arrays;
 
 /**
  * Camera2 API カメラ画面（iPhoneスタイル）
- * ・前後カメラ切り替え（フリップボタン）
+ * ・前後カメラ切り替え（フリップボタン）デフォルトは背面カメラ
  * ・タイマー撮影（OFF / 3秒 / 5秒）
  * ・カウントダウン表示
+ * ・ギャラリーから写真選択（一人での撮影が難しい場合）
  */
 public class CameraActivity extends AppCompatActivity {
 
@@ -60,14 +66,18 @@ public class CameraActivity extends AppCompatActivity {
     private CaptureRequest.Builder previewRequestBuilder;
     private String frontCameraId;
     private String backCameraId;
-    private boolean isFrontCamera = true;
+    // ★ デフォルトを背面カメラに変更
+    private boolean isFrontCamera = false;
 
     // Timer
-    private int timerSeconds = 0; // 0=OFF, 3=3秒, 5=5秒
+    private int timerSeconds = 0;
     private CountDownTimer countDownTimer;
     private boolean isCapturing = false;
 
     private File selfieFile;
+
+    // ★ ギャラリー選択ランチャー
+    private ActivityResultLauncher<Intent> galleryLauncher;
 
     // ─── Surface Listener ───────────────────────────────────────────────
     private final TextureView.SurfaceTextureListener surfaceTextureListener =
@@ -123,7 +133,70 @@ public class CameraActivity extends AppCompatActivity {
         // タイマーボタン（OFF → 3秒 → 5秒 → OFF）
         btnTimer.setOnClickListener(v -> cycleTimer());
 
+        // ★ ギャラリーボタン
+        findViewById(R.id.btn_gallery).setOnClickListener(v -> openGallery());
+
+        // ★ ギャラリー選択結果ハンドラー
+        galleryLauncher = registerForActivityResult(
+                new ActivityResultContracts.StartActivityForResult(),
+                activityResult -> {
+                    if (activityResult.getResultCode() == RESULT_OK
+                            && activityResult.getData() != null) {
+                        Uri selectedUri = activityResult.getData().getData();
+                        if (selectedUri != null) {
+                            handleGalleryImage(selectedUri);
+                        }
+                    }
+                });
+
         findCameraIds();
+    }
+
+    // ★ ギャラリーを開く
+    private void openGallery() {
+        Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
+        intent.setType("image/*");
+        intent.addCategory(Intent.CATEGORY_OPENABLE);
+        galleryLauncher.launch(Intent.createChooser(intent, "写真を選択"));
+    }
+
+    // ★ ギャラリーから選んだ画像を処理
+    private void handleGalleryImage(Uri uri) {
+        try (InputStream is = getContentResolver().openInputStream(uri)) {
+            if (is == null) {
+                Toast.makeText(this, "画像を読み込めませんでした", Toast.LENGTH_SHORT).show();
+                return;
+            }
+            // デコードしてリサイズ（大きすぎる画像対策）
+            Bitmap bitmap = BitmapFactory.decodeStream(is);
+            if (bitmap == null) {
+                Toast.makeText(this, "画像を読み込めませんでした", Toast.LENGTH_SHORT).show();
+                return;
+            }
+            // 長辺1024px以下にリサイズ
+            int maxSide = 1024;
+            if (bitmap.getWidth() > maxSide || bitmap.getHeight() > maxSide) {
+                float scale = (float) maxSide / Math.max(bitmap.getWidth(), bitmap.getHeight());
+                bitmap = Bitmap.createScaledBitmap(
+                        bitmap,
+                        (int)(bitmap.getWidth() * scale),
+                        (int)(bitmap.getHeight() * scale),
+                        true);
+            }
+            try (FileOutputStream fos = new FileOutputStream(selfieFile)) {
+                bitmap.compress(Bitmap.CompressFormat.JPEG, 90, fos);
+            }
+            Log.d(TAG, "Gallery image saved: " + selfieFile.getAbsolutePath());
+
+            // InputActivityへ遷移
+            Intent intent = new Intent(this, InputActivity.class);
+            intent.putExtra(EXTRA_SELFIE_PATH, selfieFile.getAbsolutePath());
+            startActivity(intent);
+
+        } catch (Exception e) {
+            Log.e(TAG, "handleGalleryImage error", e);
+            Toast.makeText(this, "画像の読み込みに失敗しました", Toast.LENGTH_SHORT).show();
+        }
     }
 
     @Override
@@ -199,7 +272,6 @@ public class CameraActivity extends AppCompatActivity {
         if (isCapturing) return;
         closeCamera();
         isFrontCamera = !isFrontCamera;
-        // フリップアニメーション
         ImageView btnFlip = findViewById(R.id.btn_flip);
         btnFlip.animate().rotationBy(360f).setDuration(300).start();
         openCamera();
@@ -241,7 +313,6 @@ public class CameraActivity extends AppCompatActivity {
                 long remaining = (millisUntilFinished / 1000) + 1;
                 txtCountdown.setText(String.valueOf(remaining));
                 txtTimerIndicator.setText(String.valueOf(remaining));
-                // 点滅アニメーション
                 txtCountdown.setAlpha(1f);
                 txtCountdown.animate().alpha(0.3f).setDuration(800).start();
             }
