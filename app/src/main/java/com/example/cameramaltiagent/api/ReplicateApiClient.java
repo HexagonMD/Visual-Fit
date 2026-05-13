@@ -35,7 +35,7 @@ public class ReplicateApiClient {
     private static final String BASE_URL = "https://api.replicate.com/v1";
     // IDM-VTON最新安定バージョン
     private static final String MODEL_VERSION =
-            "yisol/idm-vton:906425dbfd09adabba2b8a029f960a2348acfab21f24d43e43bb5b3b48c35b26";
+            "cuuupid/idm-vton:0513734a452173b8173e907e3a59d19a36266e55b48528559432bd21c7d7e985";
 
     private static final int POLL_INTERVAL_MS = 5000;
     private static final int MAX_POLL_COUNT = 24; // 120秒タイムアウト
@@ -114,10 +114,17 @@ public class ReplicateApiClient {
                 .build();
 
         try (Response response = client.newCall(request).execute()) {
-            if (!response.isSuccessful() || response.body() == null) {
-                throw new IOException("Replicate create prediction error: " + response.code());
+            String bodyStr = response.body() != null ? response.body().string() : "null";
+            if (!response.isSuccessful()) {
+                if (response.code() == 402) {
+                    throw new IOException(
+                            "Replicateのクレジットが不足しています。\n" +
+                            "https://replicate.com/account/billing でクレジットを購入後、" +
+                            "数分待ってから再試行してください。");
+                }
+                throw new IOException("Replicate create prediction error: " + response.code() + " body=" + bodyStr);
             }
-            JSONObject json = new JSONObject(response.body().string());
+            JSONObject json = new JSONObject(bodyStr);
             return json.getString("id");
         }
     }

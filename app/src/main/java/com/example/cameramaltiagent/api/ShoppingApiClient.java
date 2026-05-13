@@ -91,7 +91,13 @@ public class ShoppingApiClient {
             String imageUrl = "";
             JSONArray images = item.optJSONArray("mediumImageUrls");
             if (images != null && images.length() > 0) {
-                imageUrl = images.getJSONObject(0).getString("imageUrl");
+                // formatVersion=2: 文字列の配列で返ってくる
+                Object first = images.get(0);
+                if (first instanceof String) {
+                    imageUrl = (String) first;
+                } else if (first instanceof JSONObject) {
+                    imageUrl = ((JSONObject) first).optString("imageUrl", "");
+                }
             }
 
             if (!imageUrl.isEmpty()) {

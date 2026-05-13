@@ -34,12 +34,19 @@ public class ResultActivity extends AppCompatActivity {
             return;
         }
 
-        // 試着画像を表示（Glideで非同期ロード）
+        // 試着画像を表示（楽天商品画像をGlideで非同期ロード）
         ImageView imgResult = findViewById(R.id.img_tryon_result);
         Glide.with(this)
                 .load(result.tryOnResult.outputImageUrl)
                 .placeholder(R.drawable.ic_launcher_background)
                 .into(imgResult);
+
+        // AI試着描写テキストがあれば追加表示
+        TextView txtTryOnDesc = findViewById(R.id.txt_tryon_description);
+        if (txtTryOnDesc != null && result.tryOnResult.tryOnDescription != null) {
+            txtTryOnDesc.setText("🤖 AI試着レポート\n" + result.tryOnResult.tryOnDescription);
+            txtTryOnDesc.setVisibility(android.view.View.VISIBLE);
+        }
 
         // スタイリストコメント
         TextView txtComment = findViewById(R.id.txt_styling_comment);

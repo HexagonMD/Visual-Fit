@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="32dp"
+    android:height="32dp"
+    android:viewportWidth="24"
+    android:viewportHeight="24">
+    <!-- カメラアイコン + 矢印（iPhoneスタイルのフリップカメラ） -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M20,5H16.83L15,3H9L7.17,5H4C2.9,5 2,5.9 2,7v13c0,1.1 0.9,2 2,2h16c1.1,0 2,-0.9 2,-2V7C22,5.9 21.1,5 20,5zM12,18c-2.76,0 -5,-2.24 -5,-5s2.24,-5 5,-5 5,2.24 5,5 -2.24,5 -5,5z"/>
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M12,10l-2,2h1.5c0,1.38 -1.12,2.5 -2.5,2.5 -0.47,0 -0.91,-0.13 -1.28,-0.36L6.61,15.25C7.24,15.72 8.04,16 8.91,16c2.21,0 4,-1.79 4,-4H14l-2,-2z"/>
+    <!-- 回転矢印 -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M12,14l2,-2h-1.5c0,-1.38 1.12,-2.5 2.5,-2.5 0.47,0 0.91,0.13 1.28,0.36l1.11,-1.11C16.76,8.28 15.96,8 15.09,8c-2.21,0 -4,1.79 -4,4H9.5l2,2z"/>
+</vector>
+

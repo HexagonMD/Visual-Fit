@@ -2,71 +2,74 @@ package com.example.cameramaltiagent.agent;
 
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.util.Log;
 
-import com.example.cameramaltiagent.api.ReplicateApiClient;
+import com.example.cameramaltiagent.api.GeminiApiClient;
 import com.example.cameramaltiagent.model.Product;
 import com.example.cameramaltiagent.model.TryOnResult;
 
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 
 /**
- * Agent 3: TryOnAgent
+ * Agent 3: TryOnAgent（Gemini版）
  *
- * 自撮り画像 + 楽天商品画像 を Replicate IDM-VTON API に送り、
- * バーチャル試着画像を生成する。
- * 処理は非同期のため完了まで5秒間隔でポーリングする。
+ * 自撮り画像をGeminiに送り「この人がこの服を着たらどう見えるか」を
+ * テキストで描写させる。商品画像（楽天URL）を表示用として使用。
+ *
+ * ※ Replicateは起動5分以上かかるため廃止。Geminiなら10〜15秒で完了。
  */
 public class TryOnAgent {
 
-    private final ReplicateApiClient replicateClient;
+    private static final String TAG = "TryOnAgent";
+    private final GeminiApiClient geminiClient;
 
     public TryOnAgent() {
-        this.replicateClient = new ReplicateApiClient();
+        this.geminiClient = new GeminiApiClient();
     }
 
-    /**
-     * バーチャル試着を実行。
-     *
-     * @param selfieFile       Camera2で撮影した自撮り画像ファイル
-     * @param product          ShoppingAgentが取得した商品（imageUrlを使用）
-     * @param garmentDesc      StyleAnalysis.garmentDescForTryOn
-     * @return TryOnResult（試着画像URL、所要時間など）
-     */
     public TryOnResult execute(File selfieFile, Product product, String garmentDesc)
             throws Exception {
         long startTime = System.currentTimeMillis();
+        try {
+            // 自撮り画像をリサイズしてバイト列に変換
+            Bitmap selfie = loadAndResize(selfieFile, 768);
+            ByteArrayOutputStream baos = new ByteArrayOutputStream();
+            selfie.compress(Bitmap.CompressFormat.JPEG, 80, baos);
+            byte[] selfieBytes = baos.toByteArray();
 
-        // Step1: 自撮り画像をリサイズ・アップロード
-        Bitmap selfie = loadAndResize(selfieFile, 768);
-        String humanImageUrl = replicateClient.uploadHumanImage(selfie);
+            // Geminiに試着描写を依頼
+            String prompt = buildTryOnPrompt(garmentDesc, product.name);
+            String description = geminiClient.generateWithBase64Image(prompt, selfieBytes);
 
-        // Step2: 試着予測を開始
-        String predictionId = replicateClient.createPrediction(
-                humanImageUrl,
-                product.imageUrl,
-                garmentDesc
-        );
+            long duration = System.currentTimeMillis() - startTime;
+            Log.d(TAG, "TryOn Gemini done in " + duration + "ms");
 
-        // Step3: ポーリングで完了まで待機（最大120秒）
-        String outputUrl = replicateClient.pollUntilComplete(predictionId);
+            // 商品画像URLを表示用に、Geminiの描写をテキスト結果として返す
+            return new TryOnResult(product.imageUrl, description, duration);
 
-        long duration = System.currentTimeMillis() - startTime;
-
-        if (outputUrl == null) {
-            return TryOnResult.failure();
+        } catch (Exception e) {
+            Log.e(TAG, "TryOn failed", e);
+            return TryOnResult.failure(e.getMessage());
         }
-        return new TryOnResult(outputUrl, predictionId, duration);
     }
 
-    /**
-     * Nexus 7のメモリ制約を考慮して画像を縮小してからデコードする。
-     * inSampleSize を使ってOOMを防止。
-     */
+    private String buildTryOnPrompt(String garmentDesc, String productName) {
+        return "あなたはAIファッションアシスタントです。\n"
+                + "この画像の人物が、次の商品を試着したとき、どのように見えるか詳しく描写してください。\n\n"
+                + "試着する商品: 「" + productName + "」\n"
+                + "服の特徴: " + garmentDesc + "\n\n"
+                + "以下の観点で150字程度で描写してください:\n"
+                + "・この人物の体型・雰囲気にその服がどう合うか\n"
+                + "・全体的なシルエットと印象\n"
+                + "・カラーバランスと全体の調和\n\n"
+                + "まるで実際に試着を目の前で見ているように、自然な日本語で描写してください。";
+    }
+
     private Bitmap loadAndResize(File file, int maxSide) {
         BitmapFactory.Options opts = new BitmapFactory.Options();
         opts.inJustDecodeBounds = true;
         BitmapFactory.decodeFile(file.getAbsolutePath(), opts);
-
         int sampleSize = 1;
         while (opts.outWidth / sampleSize > maxSide
                 || opts.outHeight / sampleSize > maxSide) {
@@ -77,4 +80,3 @@ public class TryOnAgent {
         return BitmapFactory.decodeFile(file.getAbsolutePath(), opts);
     }
 }
-

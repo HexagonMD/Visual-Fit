@@ -70,21 +70,24 @@ public class AgentPipeline {
                 result.selectedProduct = selected;
                 Log.d(TAG, "Step2 done: " + selected.name);
 
-                // ── Step 3: TryOnAgent ────────────────────────────────
-                notifyStep(callback, 3, "👗 バーチャル試着を生成中...\n(30〜120秒かかります)");
+                // ── Step 3: TryOnAgent (Gemini版) ────────────────────
+                notifyStep(callback, 3, "👗 AIが試着をシミュレーション中...\n(10〜15秒)");
                 TryOnResult tryOn = tryOnAgent.execute(
                         selfieFile, selected, analysis.garmentDescForTryOn);
                 result.tryOnResult = tryOn;
 
-                if (!tryOn.success || tryOn.outputImageUrl == null) {
-                    throw new Exception("TryOnAgent: 試着画像の生成に失敗しました。別商品で再試行してください。");
+                if (!tryOn.success) {
+                    String reason = (tryOn.failureReason != null && !tryOn.failureReason.isEmpty())
+                            ? tryOn.failureReason
+                            : "試着シミュレーションに失敗しました。再試行してください。";
+                    throw new Exception(reason);
                 }
-                Log.d(TAG, "Step3 done in " + tryOn.durationMs + "ms: " + tryOn.outputImageUrl);
+                Log.d(TAG, "Step3 done in " + tryOn.durationMs + "ms");
 
                 // ── Step 4: StylistAgent ──────────────────────────────
                 notifyStep(callback, 4, "✨ スタイリングコメントを生成中...");
                 String comment = stylistAgent.generateComment(
-                        tryOn.outputImageUrl, clothingText, selected.name);
+                        tryOn.outputImageUrl, tryOn.tryOnDescription, clothingText, selected.name);
                 result.stylingComment = comment;
                 Log.d(TAG, "Step4 done: " + comment.substring(0, Math.min(50, comment.length())));
 

@@ -1,19 +1,22 @@
 package com.example.cameramaltiagent.model;
 
 /**
- * Agent3(TryOnAgent)のReplicate IDM-VTON実行結果。
+ * Agent3(TryOnAgent)の試着シミュレーション結果。
+ * outputImageUrl: 楽天商品画像URL（表示用）
+ * tryOnDescription: GeminiによるAI試着描写テキスト
  */
 public class TryOnResult {
-    public String outputImageUrl;   // 試着結果画像URL
-    public String predictionId;     // Replicate prediction ID
-    public long durationMs;         // 生成にかかった時間(ms)
+    public String outputImageUrl;    // 表示する画像URL（楽天商品画像）
+    public String tryOnDescription;  // GeminiのAI試着描写
+    public long durationMs;          // 処理時間(ms)
     public boolean success;
+    public String failureReason;
 
     public TryOnResult() {}
 
-    public TryOnResult(String outputImageUrl, String predictionId, long durationMs) {
+    public TryOnResult(String outputImageUrl, String tryOnDescription, long durationMs) {
         this.outputImageUrl = outputImageUrl;
-        this.predictionId = predictionId;
+        this.tryOnDescription = tryOnDescription;
         this.durationMs = durationMs;
         this.success = true;
     }
@@ -21,6 +24,13 @@ public class TryOnResult {
     public static TryOnResult failure() {
         TryOnResult r = new TryOnResult();
         r.success = false;
+        return r;
+    }
+
+    public static TryOnResult failure(String reason) {
+        TryOnResult r = new TryOnResult();
+        r.success = false;
+        r.failureReason = reason;
         return r;
     }
 }

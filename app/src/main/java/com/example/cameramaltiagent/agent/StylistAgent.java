@@ -5,8 +5,8 @@ import com.example.cameramaltiagent.api.GeminiApiClient;
 /**
  * Agent 4: StylistAgent
  *
- * TryOnResult の試着画像URL と元のユーザーテキストを受け取り、
- * Gemini のマルチモーダル機能（画像URL + テキスト）でスタイリングコメントを生成する。
+ * TryOnAgentが生成したAI試着描写テキストと商品画像URLを受け取り、
+ * Geminiでスタイリングアドバイスを生成する。
  */
 public class StylistAgent {
 
@@ -17,26 +17,32 @@ public class StylistAgent {
     }
 
     /**
-     * @param tryOnImageUrl  Replicateが生成した試着結果画像URL
-     * @param originalText   ユーザーが入力した服装テキスト
-     * @param productName    選択された商品名
+     * @param productImageUrl  楽天商品画像URL（視覚参考用）
+     * @param tryOnDescription TryOnAgentが生成したAI試着描写テキスト
+     * @param originalText     ユーザーが入力した服装テキスト
+     * @param productName      選択された商品名
      */
-    public String generateComment(String tryOnImageUrl, String originalText,
-                                  String productName) throws Exception {
-        String prompt = buildPrompt(originalText, productName);
-        return geminiClient.generateWithImageUrl(prompt, tryOnImageUrl);
+    public String generateComment(String productImageUrl, String tryOnDescription,
+                                  String originalText, String productName) throws Exception {
+        String prompt = buildPrompt(tryOnDescription, originalText, productName);
+        // 商品画像があればマルチモーダルで、なければテキストのみ
+        if (productImageUrl != null && !productImageUrl.isEmpty()) {
+            return geminiClient.generateWithImageUrl(prompt, productImageUrl);
+        }
+        return geminiClient.generateText(prompt);
     }
 
-    private String buildPrompt(String originalText, String productName) {
+    private String buildPrompt(String tryOnDescription, String originalText, String productName) {
         return "あなたはプロのファッションスタイリストです。\n"
-                + "この画像はバーチャル試着の結果です。\n"
+                + "商品画像を参考にしながら、以下のAI試着レポートをもとにスタイリングアドバイスをしてください。\n\n"
+                + "【AI試着レポート】\n"
+                + (tryOnDescription != null ? tryOnDescription : "（試着情報なし）") + "\n\n"
                 + "元のリクエスト: 「" + originalText + "」\n"
-                + "試着した商品: 「" + productName + "」\n\n"
+                + "商品名: 「" + productName + "」\n\n"
                 + "以下の観点で200字以内でコメントしてください:\n"
-                + "1. 全体の印象とコーデの評価\n"
-                + "2. 改善提案（アクセサリー・靴・バッグなど）\n"
-                + "3. このスタイルが映えるシーン\n\n"
+                + "1. コーデ全体の印象と評価\n"
+                + "2. おすすめのスタイリング提案（アクセサリー・靴・バッグなど）\n"
+                + "3. このスタイルが映えるシーン・場面\n\n"
                 + "親しみやすい日本語でお願いします。";
     }
 }
-

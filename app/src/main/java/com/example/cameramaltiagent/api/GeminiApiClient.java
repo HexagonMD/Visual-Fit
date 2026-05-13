@@ -1,5 +1,7 @@
 package com.example.cameramaltiagent.api;
 
+import android.util.Base64;
+
 import com.example.cameramaltiagent.BuildConfig;
 
 import org.json.JSONArray;
@@ -72,6 +74,38 @@ public class GeminiApiClient {
         fileData.put("mimeType", "image/jpeg");
         fileData.put("fileUri", imageUrl);
         imagePart.put("fileData", fileData);
+        parts.put(imagePart);
+
+        // テキストパート
+        JSONObject textPart = new JSONObject();
+        textPart.put("text", prompt);
+        parts.put(textPart);
+
+        content.put("parts", parts);
+        content.put("role", "user");
+        contents.put(content);
+        body.put("contents", contents);
+
+        return executeRequest(body);
+    }
+
+    /**
+     * ローカル画像（バイト列）をbase64でインライン送信するプロンプト。
+     * TryOnAgentで自撮り画像を解析するときに使用。
+     */
+    public String generateWithBase64Image(String prompt, byte[] imageBytes)
+            throws IOException, JSONException {
+        JSONObject body = new JSONObject();
+        JSONArray contents = new JSONArray();
+        JSONObject content = new JSONObject();
+        JSONArray parts = new JSONArray();
+
+        // インライン画像パート（base64）
+        JSONObject imagePart = new JSONObject();
+        JSONObject inlineData = new JSONObject();
+        inlineData.put("mimeType", "image/jpeg");
+        inlineData.put("data", Base64.encodeToString(imageBytes, Base64.NO_WRAP));
+        imagePart.put("inlineData", inlineData);
         parts.put(imagePart);
 
         // テキストパート
