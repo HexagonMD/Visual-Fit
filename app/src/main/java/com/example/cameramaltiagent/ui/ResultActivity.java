@@ -148,13 +148,6 @@ public class ResultActivity extends AppCompatActivity {
             String request = etRefine.getText().toString().trim();
             if (request.isEmpty()) return;
 
-            // 自撮りファイルを取得
-            String selfiePath = getIntent().getStringExtra(CameraActivity.EXTRA_SELFIE_PATH);
-            if (selfiePath == null) {
-                Toast.makeText(this, "元の写真が見つかりません", Toast.LENGTH_SHORT).show();
-                return;
-            }
-
             btnRefine.setEnabled(false);
             etRefine.setEnabled(false);
             if (txtStatus != null) {
@@ -162,14 +155,19 @@ public class ResultActivity extends AppCompatActivity {
                 txtStatus.setVisibility(View.VISIBLE);
             }
 
+            // 現在のコーデ説明 + ユーザー修正リクエストで新画像を生成
+            String currentCoord = (result.styleAnalysis != null
+                    && result.styleAnalysis.garmentDescForTryOn != null)
+                    ? result.styleAnalysis.garmentDescForTryOn
+                    : "fashion outfit";
+
             Executors.newSingleThreadExecutor().execute(() -> {
                 try {
-                    String currentCoord = result.styleAnalysis != null
-                            ? result.styleAnalysis.garmentDescForTryOn : "fashion outfit";
                     String imagePrompt = "Professional fashion magazine photo of a fashion model. "
                             + "Base outfit: " + currentCoord + ". "
-                            + "Modification: " + request + ". "
-                            + "Clean white studio background. Full body shot. High-end fashion photography.";
+                            + "Modification request: " + request + ". "
+                            + "Clean white studio background. Full body shot. "
+                            + "High-end fashion photography. Natural lighting.";
 
                     GeminiApiClient client = new GeminiApiClient();
                     byte[] newImageBytes = client.generateImageFromText(imagePrompt);
@@ -179,24 +177,24 @@ public class ResultActivity extends AppCompatActivity {
                         etRefine.setEnabled(true);
                         etRefine.setText("");
 
-                        if (newImageBytes != null) {
-                            // 新画像をファイルに保存して表示
+                        if (newImageBytes != null && newImageBytes.length > 0) {
+                            // 新画像をキャッシュディレクトリに保存して表示（キャッシュ無効化で最新画像を確実に表示）
                             File dir = getCacheDir();
-                            File outFile = new File(dir, "tryon_refined.png");
+                            File outFile = new File(dir, "tryon_refined_" + System.currentTimeMillis() + ".png");
                             try (java.io.FileOutputStream fos = new java.io.FileOutputStream(outFile)) {
                                 fos.write(newImageBytes);
                                 tryOnImageFile = outFile;
-                                Glide.with(this).load(outFile).skipMemoryCache(true)
+                                Glide.with(ResultActivity.this)
+                                        .load(outFile)
+                                        .skipMemoryCache(true)
                                         .diskCacheStrategy(com.bumptech.glide.load.engine.DiskCacheStrategy.NONE)
                                         .into(imgResult);
-                                if (txtStatus != null) {
-                                    txtStatus.setText("✅ 修正完了！");
-                                }
+                                if (txtStatus != null) txtStatus.setText("✅ 修正完了！");
                             } catch (Exception e) {
-                                if (txtStatus != null) txtStatus.setText("❌ 保存エラー");
+                                if (txtStatus != null) txtStatus.setText("❌ 保存エラー: " + e.getMessage());
                             }
                         } else {
-                            if (txtStatus != null) txtStatus.setText("❌ 画像生成できませんでした");
+                            if (txtStatus != null) txtStatus.setText("❌ 画像を生成できませんでした。再度お試しください。");
                         }
                     });
                 } catch (Exception e) {

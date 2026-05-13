@@ -68,6 +68,8 @@ public class ProcessingActivity extends AppCompatActivity {
                 String resultJson = new Gson().toJson(result);
                 Intent intent = new Intent(ProcessingActivity.this, ResultActivity.class);
                 intent.putExtra(EXTRA_AGENT_RESULT, resultJson);
+                // ★ selfiePath を ResultActivity にも渡す（AIチャット修正で使用）
+                intent.putExtra(CameraActivity.EXTRA_SELFIE_PATH, selfiePath);
                 startActivity(intent);
                 finish();
             }
