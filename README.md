@@ -1,6 +1,8 @@
 # VirtualFit AI
 
-カメラで自撮りして「着たい服」をテキストで入力すると、商品検索・購入リンク取得・バーチャル試着画像生成・スタイリングコメントの生成を自動で行うAndroidアプリです。
+「着たい服」をテキストで入力して自撮りするだけで、商品検索・バーチャル試着・コーディネートアドバイスを自動でこなす Android アプリです。
+
+4 つの役割に分かれた独立したエージェントがパイプライン上で協調動作する**マルチエージェント設計**を採用しており、各エージェントが専門タスクを担当することで柔軟な拡張が可能な構成になっています。
 
 ---
 
@@ -60,39 +62,47 @@ rakuten_app_id=YOUR_RAKUTEN_APP_ID
 
 ---
 
-## アーキテクチャ
+## マルチエージェント設計
 
-```mermaid
-flowchart TD
-    A[CameraActivity\n自撮り撮影] -->|selfieUri| B[InputActivity\nテキスト入力]
-    B -->|selfieUri + clothingText| C[ProcessingActivity\n進捗表示]
-    C --> D[AgentPipeline\nExecutorService]
+このアプリの中核は、4 つの専門エージェントが直列に連携する**マルチエージェントパイプライン**です。各エージェントは独立したタスクを持ち、前段の出力を受け取って処理を行い、次のエージェントへ渡します。
 
-    D --> E[StyleAnalystAgent\nGemini API\nテキスト構造化]
-    D --> F[ShoppingAgent\nRakuten API\n商品検索]
-    D --> G[TryOnAgent\nReplicate IDM-VTON\nバーチャル試着]
-
-    E -->|StyleAnalysis| H[StylistAgent\nGemini API multimodal\nコメント生成]
-    F -->|List&lt;Product&gt;| H
-    G -->|TryOnResult| H
-
-    H --> I[ResultActivity\n試着画像・購入リンク・コメント表示]
-```
-
----
-
-## 処理パイプライン
-
-| エージェント | 使用 API | 役割 |
-|------------|---------|------|
+| エージェント | 使用 API | 担当タスク |
+|------------|---------|-----------|
 | StyleAnalystAgent | Gemini 1.5 Flash | テキスト入力を構造化データ（JSON）に変換 |
 | ShoppingAgent | Rakuten Ichiba API | 商品検索・購入 URL リスト取得 |
 | TryOnAgent | Replicate IDM-VTON | 自撮り画像への服の合成（バーチャル試着） |
 | StylistAgent | Gemini 1.5 Flash (multimodal) | 試着画像をもとにスタイリングコメントを生成 |
 
+エージェントの追加・差し替えは `AgentPipeline` を編集するだけで対応でき、たとえば別の試着モデルや別のショッピング API への変更も容易です。
+
 ---
 
-## クラス構成
+## アーキテクチャ
+
+```mermaid
+flowchart LR
+    subgraph UI
+        A([CameraActivity\n自撮り]) --> B([InputActivity\nテキスト入力])
+        B --> C([ProcessingActivity\n進捗表示])
+        R([ResultActivity\n結果表示])
+    end
+
+    subgraph Pipeline["マルチエージェントパイプライン (ExecutorService)"]
+        direction TB
+        SA["StyleAnalystAgent\nGemini API\nテキスト → 構造化JSON"]
+        SH["ShoppingAgent\nRakuten API\n商品検索"]
+        TO["TryOnAgent\nReplicate IDM-VTON\nバーチャル試着"]
+        ST["StylistAgent\nGemini API multimodal\nコメント生成"]
+
+        SA -->|StyleAnalysis| SH
+        SH -->|List&lt;Product&gt;| TO
+        TO -->|TryOnResult| ST
+        SA -->|StyleAnalysis| ST
+    end
+
+    C --> SA
+    ST --> R
+```
 
 ```
 com.example.cameramaltiagent/
