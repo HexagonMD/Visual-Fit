@@ -166,3 +166,13 @@ com.example.cameramaltiagent/
 ## ライセンス
 
 このプロジェクトは個人・学習目的で作成されています。
+
+---
+
+## プライバシーについて
+
+本アプリは Gemini API を APIキー経由で使用しています。
+Google の公式ポリシーにより、**API 経由で送信した画像・テキストはモデルの学習には使用されません。**
+
+参照: [Gemini API 利用規約 — Google AI](https://ai.google.dev/gemini-api/terms)
+
