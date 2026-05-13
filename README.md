@@ -13,7 +13,7 @@
 | アプリ名 | VirtualFit AI |
 | 対象端末 | Nexus 7 (API 23 / Android 6.0+) |
 | 言語 | Java |
-| 主要技術 | Camera2 API / Gemini API / Rakuten API / Replicate IDM-VTON / OkHttp |
+| 主要技術 | Camera2 API / Gemini API / Rakuten API / Replicate IDM-VTON / OkHttp / Gson / Glide |
 
 ---
 
@@ -49,8 +49,8 @@
 
 ```properties
 gemini_api_key=YOUR_GEMINI_API_KEY
-replicate_api_token=YOUR_REPLICATE_API_TOKEN
 rakuten_app_id=YOUR_RAKUTEN_APP_ID
+rakuten_access_key=YOUR_RAKUTEN_ACCESS_KEY
 ```
 
 ### ビルドと実行
