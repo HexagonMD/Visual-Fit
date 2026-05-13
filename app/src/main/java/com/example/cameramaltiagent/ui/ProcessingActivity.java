@@ -89,7 +89,13 @@ public class ProcessingActivity extends AppCompatActivity {
             mockPipeline = new MockAgentPipeline();
             mockPipeline.execute(new File(selfiePath != null ? selfiePath : ""), clothingText, callback);
         } else {
-            // 本番: 実際のAPIを呼ぶ
+            // 本番: selfiePath が取れていない場合はエラー表示して終了
+            if (selfiePath == null) {
+                txtStepDetail.setText("写真が取得できませんでした。\n戻って撮り直してください。");
+                progressBar.setVisibility(android.view.View.GONE);
+                btnRetryBack.setVisibility(android.view.View.VISIBLE);
+                return;
+            }
             pipeline = new AgentPipeline();
             pipeline.execute(new File(selfiePath), clothingText, callback);
         }
@@ -109,10 +115,11 @@ public class ProcessingActivity extends AppCompatActivity {
             if (dot == null || label == null) continue;
 
             if (i < activeStep - 1) {
-                // 完了済み: 緑ドット + 通常テキスト
+                // 完了済み: 緑ドット + 通常テキスト（BOLD解除を忘れずに）
                 dot.setBackgroundResource(R.drawable.step_dot_inactive);
                 dot.getBackground().setTint(colorDone);
                 label.setTextColor(colorDone);
+                label.setTypeface(null, android.graphics.Typeface.NORMAL);
             } else if (i == activeStep - 1) {
                 // 実行中: 黒ドット + 太字テキスト
                 dot.setBackgroundResource(R.drawable.step_dot_inactive);

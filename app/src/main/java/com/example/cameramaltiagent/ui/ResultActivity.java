@@ -3,7 +3,6 @@ package com.example.cameramaltiagent.ui;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
-import android.os.Environment;
 import android.view.View;
 import android.widget.EditText;
 import android.widget.ImageView;
@@ -21,6 +20,7 @@ import com.example.cameramaltiagent.model.Product;
 import com.google.gson.Gson;
 
 import java.io.File;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 /**
@@ -30,7 +30,9 @@ public class ResultActivity extends AppCompatActivity {
 
     private AgentResult result;
     private ImageView imgResult;
-    private File tryOnImageFile;  // 現在表示中の試着画像ファイル
+    private File tryOnImageFile;
+    // AIチャット用Executor（Activity破棄時にshutdown）
+    private final ExecutorService chatExecutor = Executors.newSingleThreadExecutor();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -155,13 +157,13 @@ public class ResultActivity extends AppCompatActivity {
                 txtStatus.setVisibility(View.VISIBLE);
             }
 
-            // 現在のコーデ説明 + ユーザー修正リクエストで新画像を生成
             String currentCoord = (result.styleAnalysis != null
                     && result.styleAnalysis.garmentDescForTryOn != null)
                     ? result.styleAnalysis.garmentDescForTryOn
                     : "fashion outfit";
 
-            Executors.newSingleThreadExecutor().execute(() -> {
+            // 共有Executorを使用してリソースリークを防止
+            chatExecutor.execute(() -> {
                 try {
                     String imagePrompt = "Professional fashion magazine photo of a fashion model. "
                             + "Base outfit: " + currentCoord + ". "
@@ -178,7 +180,6 @@ public class ResultActivity extends AppCompatActivity {
                         etRefine.setText("");
 
                         if (newImageBytes != null && newImageBytes.length > 0) {
-                            // 新画像をキャッシュディレクトリに保存して表示（キャッシュ無効化で最新画像を確実に表示）
                             File dir = getCacheDir();
                             File outFile = new File(dir, "tryon_refined_" + System.currentTimeMillis() + ".png");
                             try (java.io.FileOutputStream fos = new java.io.FileOutputStream(outFile)) {
@@ -206,5 +207,11 @@ public class ResultActivity extends AppCompatActivity {
                 }
             });
         });
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        chatExecutor.shutdownNow();
     }
 }
