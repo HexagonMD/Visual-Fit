@@ -158,54 +158,78 @@ public class GeminiApiClient {
 
         String url = IMAGE_GEN_URL + "?key=" + apiKey;
         RequestBody reqBody = RequestBody.create(body.toString(), JSON);
-        Request request = new Request.Builder()
-                .url(url)
-                .post(reqBody)
-                .build();
 
-        try (Response response = client.newCall(request).execute()) {
-            String responseBody = response.body() != null ? response.body().string() : "";
-            if (!response.isSuccessful()) {
-                throw new IOException("Gemini ImageGen error: " + response.code() + " " + responseBody);
-            }
-            JSONObject json = new JSONObject(responseBody);
-            JSONArray responseParts = json.getJSONArray("candidates")
-                    .getJSONObject(0)
-                    .getJSONObject("content")
-                    .getJSONArray("parts");
-            for (int i = 0; i < responseParts.length(); i++) {
-                JSONObject part = responseParts.getJSONObject(i);
-                if (part.has("inlineData")) {
-                    String b64 = part.getJSONObject("inlineData").getString("data");
-                    return Base64.decode(b64, Base64.NO_WRAP);
+        IOException lastError = null;
+        for (int attempt = 1; attempt <= 2; attempt++) {
+            Request request = new Request.Builder().url(url).post(reqBody).build();
+            try (Response response = client.newCall(request).execute()) {
+                String responseBody = response.body() != null ? response.body().string() : "";
+                if (response.code() == 503 || response.code() == 529) {
+                    lastError = new IOException(
+                            "画像生成サーバーが混雑しています。\n少し待ってから「戻って再試行」してください。");
+                    if (attempt < 2) Thread.sleep(3000);
+                    continue;
                 }
+                if (!response.isSuccessful()) {
+                    throw new IOException("Gemini 画像生成 エラー (コード: " + response.code() + ")\n"
+                            + "しばらくしてから再試行してください。");
+                }
+                JSONObject json = new JSONObject(responseBody);
+                JSONArray responseParts = json.getJSONArray("candidates")
+                        .getJSONObject(0)
+                        .getJSONObject("content")
+                        .getJSONArray("parts");
+                for (int i = 0; i < responseParts.length(); i++) {
+                    JSONObject part = responseParts.getJSONObject(i);
+                    if (part.has("inlineData")) {
+                        String b64 = part.getJSONObject("inlineData").getString("data");
+                        return Base64.decode(b64, Base64.NO_WRAP);
+                    }
+                }
+                return null;
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+                throw new IOException("処理が中断されました");
             }
-            return null;
         }
+        throw lastError != null ? lastError
+                : new IOException("Gemini 画像生成に接続できませんでした。\nネットワーク接続を確認してください。");
     }
 
     private String executeRequest(JSONObject body) throws IOException, JSONException {
         String url = BASE_URL + "?key=" + apiKey;
         RequestBody reqBody = RequestBody.create(body.toString(), JSON);
-        Request request = new Request.Builder()
-                .url(url)
-                .post(reqBody)
-                .build();
 
-        try (Response response = client.newCall(request).execute()) {
-            if (!response.isSuccessful() || response.body() == null) {
-                throw new IOException("Gemini API error: " + response.code()
-                        + " " + (response.body() != null ? response.body().string() : ""));
+        // 2回だけリトライ（503=サーバー混雑は短待機して1度だけ再試行）
+        IOException lastError = null;
+        for (int attempt = 1; attempt <= 2; attempt++) {
+            Request request = new Request.Builder().url(url).post(reqBody).build();
+            try (Response response = client.newCall(request).execute()) {
+                String responseBody = response.body() != null ? response.body().string() : "";
+                if (response.code() == 503 || response.code() == 529) {
+                    lastError = new IOException(
+                            "AIサーバーが混雑しています。\n少し待ってから「戻って再試行」してください。");
+                    if (attempt < 2) Thread.sleep(3000);
+                    continue;
+                }
+                if (!response.isSuccessful()) {
+                    throw new IOException("Gemini API エラー (コード: " + response.code() + ")\n"
+                            + "しばらくしてから再試行してください。");
+                }
+                JSONObject json = new JSONObject(responseBody);
+                return json.getJSONArray("candidates")
+                        .getJSONObject(0)
+                        .getJSONObject("content")
+                        .getJSONArray("parts")
+                        .getJSONObject(0)
+                        .getString("text");
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+                throw new IOException("処理が中断されました");
             }
-            String responseStr = response.body().string();
-            JSONObject json = new JSONObject(responseStr);
-            return json.getJSONArray("candidates")
-                    .getJSONObject(0)
-                    .getJSONObject("content")
-                    .getJSONArray("parts")
-                    .getJSONObject(0)
-                    .getString("text");
         }
+        throw lastError != null ? lastError
+                : new IOException("Gemini API に接続できませんでした。\nネットワーク接続を確認してください。");
     }
 }
 

@@ -65,8 +65,18 @@ public class TryOnAgent {
                         duration);
             }
 
-            // 生成画像をファイル保存
-            File outFile = new File(outputDir, "tryon_result.png");
+            // 生成画像をファイル保存（タイムスタンプ付きで毎回ユニークなファイル名にする）
+            // → Glideのキャッシュが前回の画像を返す問題を防ぐ
+            String fileName = "tryon_" + System.currentTimeMillis() + ".png";
+            File outFile = new File(outputDir, fileName);
+
+            // 古い tryon_*.png を削除してストレージを節約
+            File[] oldFiles = outputDir.listFiles(
+                    f -> f.getName().startsWith("tryon_") && f.getName().endsWith(".png"));
+            if (oldFiles != null) {
+                for (File old : oldFiles) old.delete();
+            }
+
             try (FileOutputStream fos = new FileOutputStream(outFile)) {
                 fos.write(imageBytes);
             }

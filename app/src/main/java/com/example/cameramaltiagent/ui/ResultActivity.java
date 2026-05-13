@@ -52,8 +52,12 @@ public class ResultActivity extends AppCompatActivity {
         if (result.tryOnResult != null && result.tryOnResult.outputImageUrl != null) {
             if (result.tryOnResult.isLocalFile) {
                 // Gemini生成のローカルファイル
+                // ※ キャッシュをスキップしないと前回の古い画像が表示されるので必ず無効化
                 tryOnImageFile = new File(result.tryOnResult.outputImageUrl);
-                Glide.with(this).load(tryOnImageFile)
+                Glide.with(this)
+                        .load(tryOnImageFile)
+                        .skipMemoryCache(true)
+                        .diskCacheStrategy(com.bumptech.glide.load.engine.DiskCacheStrategy.NONE)
                         .placeholder(R.drawable.ic_launcher_background)
                         .into(imgResult);
             } else {
