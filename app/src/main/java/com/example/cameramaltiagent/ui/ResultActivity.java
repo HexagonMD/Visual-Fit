@@ -133,8 +133,14 @@ public class ResultActivity extends AppCompatActivity {
         }
 
         card.setOnClickListener(v -> {
-            Intent i = new Intent(Intent.ACTION_VIEW, Uri.parse(product.purchaseUrl));
-            startActivity(i);
+            // https/http のみ許可（javascript: や intent: などの不正スキームを弾く）
+            String url = product.purchaseUrl;
+            if (url != null && (url.startsWith("https://") || url.startsWith("http://"))) {
+                Intent i = new Intent(Intent.ACTION_VIEW, Uri.parse(url));
+                startActivity(i);
+            } else {
+                Toast.makeText(this, "無効なURLです", Toast.LENGTH_SHORT).show();
+            }
         });
     }
 
