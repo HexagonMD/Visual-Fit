@@ -23,11 +23,6 @@ public class TryOnResult {
         this.isLocalFile      = false;
     }
 
-    public static TryOnResult failure() {
-        TryOnResult r = new TryOnResult();
-        r.success = false;
-        return r;
-    }
 
     public static TryOnResult failure(String reason) {
         TryOnResult r = new TryOnResult();

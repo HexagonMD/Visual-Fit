@@ -13,11 +13,11 @@ import java.io.File;
 import java.io.FileOutputStream;
 
 /**
- * Agent 3: TryOnAgent（Gemini画像生成版）
+ * Agent 3: TryOnAgent（2ステップ方式）
  *
- * 自撮り写真をbase64でGeminiに送り
- * 「この人物に服を着せた画像を生成」させる。
- * 生成画像はローカルファイルに保存し、パスをTryOnResultに格納する。
+ * Step1: 自撮り写真を gemini-2.5-flash で体型テキスト分析
+ * Step2: テキストのみで gemini-2.5-flash-image に画像生成を依頼
+ *        （実物の顔写真を画像生成モデルに渡さないのでポリシー違反を回避）
  */
 public class TryOnAgent {
 
@@ -28,39 +28,41 @@ public class TryOnAgent {
         this.geminiClient = new GeminiApiClient();
     }
 
-    /**
-     * @param selfieFile     自撮り画像ファイル
-     * @param topProduct     上着商品（単品の場合はこれだけ）
-     * @param bottomProduct  下着商品（単品の場合はnull）
-     * @param garmentDesc    コーデ全体の英語説明
-     * @param outputDir      生成画像の保存先ディレクトリ
-     */
     public TryOnResult execute(File selfieFile, Product topProduct, Product bottomProduct,
                                String garmentDesc, File outputDir) throws Exception {
         long startTime = System.currentTimeMillis();
         try {
-            // 自撮りをリサイズしてバイト列に変換
-            Bitmap selfie = loadAndResize(selfieFile, 768);
+            // Step1: 自撮りをリサイズしてバイト列に変換
+            Bitmap selfie = loadAndResize(selfieFile, 512);
             ByteArrayOutputStream baos = new ByteArrayOutputStream();
-            selfie.compress(Bitmap.CompressFormat.JPEG, 80, baos);
+            selfie.compress(Bitmap.CompressFormat.JPEG, 75, baos);
             byte[] selfieBytes = baos.toByteArray();
 
-            // プロンプト組み立て
-            String prompt = buildPrompt(topProduct, bottomProduct, garmentDesc);
-            Log.d(TAG, "TryOn prompt: " + prompt);
+            // Step1: 自撮りから体型をテキスト分析（gemini-2.5-flash）
+            Log.d(TAG, "Step1: 体型分析開始");
+            String bodyAnalysis = geminiClient.generateWithBase64Image(
+                    "この人物の外見的特徴を以下の項目で簡潔に答えてください（プライバシーに配慮した一般的な描写のみ）:\n"
+                    + "- 性別: \n"
+                    + "- 体型: （細め/普通/がっしり）\n"
+                    + "- 身長: （低め/普通/高め）\n"
+                    + "- 肌トーン: （明るい/中間/暗め）\n"
+                    + "各項目を括弧内の選択肢で答えてください。",
+                    selfieBytes);
+            Log.d(TAG, "Step1 body analysis: " + bodyAnalysis);
 
-            // Gemini 画像生成
-            byte[] imageBytes = geminiClient.generateTryOnImage(prompt, selfieBytes);
+            // Step2: テキストのみで画像生成（gemini-2.5-flash-image）
+            Log.d(TAG, "Step2: ファッション画像生成開始");
+            String imagePrompt = buildImagePrompt(bodyAnalysis, topProduct, bottomProduct, garmentDesc);
+
+            byte[] imageBytes = geminiClient.generateImageFromText(imagePrompt);
             long duration = System.currentTimeMillis() - startTime;
 
-            if (imageBytes == null) {
-                // 画像生成失敗→テキスト描写にフォールバック
-                Log.w(TAG, "Gemini画像生成失敗。テキスト描写にフォールバック");
-                String desc = geminiClient.generateWithBase64Image(
-                        buildTextPrompt(topProduct, bottomProduct, garmentDesc), selfieBytes);
-                TryOnResult result = new TryOnResult(
-                        topProduct != null ? topProduct.imageUrl : null, desc, duration);
-                return result;
+            if (imageBytes == null || imageBytes.length == 0) {
+                Log.w(TAG, "画像生成失敗。テキスト描写にフォールバック");
+                return new TryOnResult(
+                        topProduct != null ? topProduct.imageUrl : null,
+                        buildFallbackDescription(bodyAnalysis, topProduct, bottomProduct, garmentDesc),
+                        duration);
             }
 
             // 生成画像をファイル保存
@@ -80,26 +82,23 @@ public class TryOnAgent {
         }
     }
 
-    private String buildPrompt(Product top, Product bottom, String garmentDesc) {
-        StringBuilder sb = new StringBuilder();
-        sb.append("あなたはプロのファッションデザイナーです。\n");
-        sb.append("この写真の人物に、以下の服を実際に着せた自然なファッション写真を生成してください。\n\n");
-        if (top != null) sb.append("【上着】").append(top.name).append("\n");
-        if (bottom != null) sb.append("【下着】").append(bottom.name).append("\n");
-        sb.append("【コーデ説明】").append(garmentDesc).append("\n\n");
-        sb.append("・人物の顔・体型・ポーズはそのままにしてください\n");
-        sb.append("・服だけを自然に合成してください\n");
-        sb.append("・プロのファッション雑誌のような仕上がりにしてください");
-        return sb.toString();
+    private String buildImagePrompt(String bodyAnalysis, Product top, Product bottom, String garmentDesc) {
+        return "Professional fashion magazine photo of a fashion model. "
+                + "Model characteristics: " + bodyAnalysis + ". "
+                + "The model is wearing: "
+                + (top != null ? top.name + ". " : "")
+                + (bottom != null ? bottom.name + ". " : "")
+                + "Style: " + garmentDesc + ". "
+                + "Clean white studio background. Full body shot. "
+                + "High-end fashion photography. Natural lighting. Professional quality.";
     }
 
-    private String buildTextPrompt(Product top, Product bottom, String garmentDesc) {
-        return "あなたはAIファッションアシスタントです。\n"
-                + "この画像の人物が次のコーデを着たとき、どのように見えるか詳しく描写してください。\n\n"
-                + (top != null ? "上着: " + top.name + "\n" : "")
-                + (bottom != null ? "下着: " + bottom.name + "\n" : "")
-                + "コーデ説明: " + garmentDesc + "\n\n"
-                + "150字程度で、シルエット・カラーバランス・全体の印象を自然な日本語で描写してください。";
+    private String buildFallbackDescription(String bodyAnalysis, Product top, Product bottom, String garmentDesc) {
+        return "あなたの体型分析: " + bodyAnalysis + "\n\n"
+                + "試着コーデ:\n"
+                + (top != null ? "・上着: " + top.name + "\n" : "")
+                + (bottom != null ? "・下着: " + bottom.name + "\n" : "")
+                + "・スタイル: " + garmentDesc;
     }
 
     private Bitmap loadAndResize(File file, int maxSide) {

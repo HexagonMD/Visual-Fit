@@ -160,22 +160,15 @@ public class ResultActivity extends AppCompatActivity {
 
             Executors.newSingleThreadExecutor().execute(() -> {
                 try {
-                    // 自撮りを読み込んでbase64で送信
-                    File selfieFile = new File(selfiePath);
-                    android.graphics.Bitmap bmp = android.graphics.BitmapFactory.decodeFile(selfiePath);
-                    java.io.ByteArrayOutputStream baos = new java.io.ByteArrayOutputStream();
-                    bmp.compress(android.graphics.Bitmap.CompressFormat.JPEG, 80, baos);
-                    byte[] selfieBytes = baos.toByteArray();
-
-                    String prompt = "あなたはプロのファッションデザイナーです。\n"
-                            + "この写真の人物に服を着せた試着画像を生成してください。\n"
-                            + "元のコーデ: " + result.styleAnalysis.garmentDescForTryOn + "\n"
-                            + "修正リクエスト: " + request + "\n"
-                            + "・人物の顔・体型はそのままにしてください\n"
-                            + "・修正の指示を反映させてください";
+                    String currentCoord = result.styleAnalysis != null
+                            ? result.styleAnalysis.garmentDescForTryOn : "fashion outfit";
+                    String imagePrompt = "Professional fashion magazine photo of a fashion model. "
+                            + "Base outfit: " + currentCoord + ". "
+                            + "Modification: " + request + ". "
+                            + "Clean white studio background. Full body shot. High-end fashion photography.";
 
                     GeminiApiClient client = new GeminiApiClient();
-                    byte[] newImageBytes = client.generateTryOnImage(prompt, selfieBytes);
+                    byte[] newImageBytes = client.generateImageFromText(imagePrompt);
 
                     runOnUiThread(() -> {
                         btnRefine.setEnabled(true);

@@ -10,8 +10,6 @@ import com.example.cameramaltiagent.model.StyleAnalysis;
 import com.example.cameramaltiagent.model.TryOnResult;
 
 import java.io.File;
-import java.util.Arrays;
-import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -70,7 +68,6 @@ public class MockAgentPipeline {
                 // 最終結果を組み立て
                 AgentResult result = new AgentResult();
                 result.styleAnalysis = analysis;
-                result.products = List.of(mockProduct);
                 result.selectedProduct = mockProduct;
                 result.tryOnResult = mockTryOn;
                 result.stylingComment =

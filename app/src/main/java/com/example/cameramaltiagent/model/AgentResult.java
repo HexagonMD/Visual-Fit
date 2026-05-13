@@ -1,13 +1,10 @@
 package com.example.cameramaltiagent.model;
 
-import java.util.List;
-
 /**
  * AgentPipelineの最終結果。ResultActivityに渡される。
  */
 public class AgentResult {
     public StyleAnalysis styleAnalysis;
-    public List<Product> products;
     public Product selectedProduct;   // 単品 or TOP商品
     public Product bottomProduct;     // 複合コーデのBOTTOM商品（null=単品）
     public TryOnResult tryOnResult;

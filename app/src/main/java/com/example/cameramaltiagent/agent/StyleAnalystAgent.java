@@ -78,7 +78,6 @@ public class StyleAnalystAgent {
         analysis.garmentType          = json.optString("garment_type", "");
         analysis.color                = json.optString("color", "");
         analysis.searchQueryJa        = json.optString("search_query_ja", "");
-        analysis.searchQueryEn        = json.optString("search_query_en", "");
         analysis.garmentDescForTryOn  = json.optString("garment_description_for_tryon", "");
         analysis.season               = json.optString("season", "");
         analysis.isCompound           = json.optBoolean("is_compound", false);

@@ -68,7 +68,6 @@ public class AgentPipeline {
                         : " 商品を検索中...";
                 notifyStep(callback, 2, shopMsg);
                 List<Product> products = shoppingAgent.search(analysis);
-                result.products = products;
 
                 Product topProduct    = products.get(0);
                 Product bottomProduct = (products.size() >= 2) ? products.get(1) : null;

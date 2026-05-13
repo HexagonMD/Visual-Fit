@@ -28,8 +28,6 @@ android {
 
         buildConfigField("String", "GEMINI_API_KEY",
             "\"${localProps.getProperty("gemini_api_key", "")}\"")
-        buildConfigField("String", "REPLICATE_API_TOKEN",
-            "\"${localProps.getProperty("replicate_api_token", "")}\"")
         buildConfigField("String", "RAKUTEN_APP_ID",
             "\"${localProps.getProperty("rakuten_app_id", "")}\"")
         buildConfigField("String", "RAKUTEN_ACCESS_KEY",
