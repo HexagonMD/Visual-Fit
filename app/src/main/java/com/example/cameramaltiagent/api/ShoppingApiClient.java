@@ -1,6 +1,7 @@
 package com.example.cameramaltiagent.api;
 
 import com.example.cameramaltiagent.BuildConfig;
+import com.example.cameramaltiagent.BuildConfig;
 import com.example.cameramaltiagent.model.Product;
 
 import org.json.JSONArray;
@@ -68,9 +69,14 @@ public class ShoppingApiClient {
                 .build();
 
         try (Response response = client.newCall(request).execute()) {
-            String bodyStr = response.body() != null ? response.body().string() : "null";
+            String bodyStr = response.body() != null ? response.body().string() : "";
             if (!response.isSuccessful()) {
-                throw new IOException("Rakuten API error: " + response.code() + " body=" + bodyStr);
+                // レスポンスボディをそのまま露出しない（APIキー情報等が含まれる可能性）
+                if (BuildConfig.DEBUG) {
+                    throw new IOException("Rakuten API error: " + response.code() + " body=" + bodyStr);
+                } else {
+                    throw new IOException("商品の検索に失敗しました（コード: " + response.code() + "）");
+                }
             }
             return parseProducts(new JSONObject(bodyStr));
         }

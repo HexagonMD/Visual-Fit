@@ -58,6 +58,10 @@ public class InputActivity extends AppCompatActivity {
                 Toast.makeText(this, "服の説明を入力してください", Toast.LENGTH_SHORT).show();
                 return;
             }
+            if (clothingText.length() > 200) {
+                Toast.makeText(this, "200文字以内で入力してください", Toast.LENGTH_SHORT).show();
+                return;
+            }
             // ProcessingActivityへ遷移してパイプライン開始
             Intent intent = new Intent(this, ProcessingActivity.class);
             intent.putExtra(CameraActivity.EXTRA_SELFIE_PATH, selfiePath);

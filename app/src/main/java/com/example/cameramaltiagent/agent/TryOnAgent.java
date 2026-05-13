@@ -4,6 +4,7 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.util.Log;
 
+import com.example.cameramaltiagent.BuildConfig;
 import com.example.cameramaltiagent.api.GeminiApiClient;
 import com.example.cameramaltiagent.model.Product;
 import com.example.cameramaltiagent.model.TryOnResult;
@@ -40,18 +41,17 @@ public class TryOnAgent {
 
             // Step1: 自撮りから体型をテキスト分析（gemini-2.5-flash）
             Log.d(TAG, "Step1: 体型分析開始");
-            String bodyAnalysis = geminiClient.generateWithBase64Image(
-                    "この人物の外見的特徴を以下の項目で簡潔に答えてください（プライバシーに配慮した一般的な描写のみ）:\n"
+            String bodyAnalysis = geminiClient.generateWithBase64Image(                    "この人物の外見的特徴を以下の項目で簡潔に答えてください（プライバシーに配慮した一般的な描写のみ）:\n"
                     + "- 性別: \n"
                     + "- 体型: （細め/普通/がっしり）\n"
                     + "- 身長: （低め/普通/高め）\n"
                     + "- 肌トーン: （明るい/中間/暗め）\n"
                     + "各項目を括弧内の選択肢で答えてください。",
                     selfieBytes);
-            Log.d(TAG, "Step1 body analysis: " + bodyAnalysis);
+            if (BuildConfig.DEBUG) Log.d(TAG, "Step1 body analysis: " + bodyAnalysis);
 
             // Step2: テキストのみで画像生成（gemini-2.5-flash-image）
-            Log.d(TAG, "Step2: ファッション画像生成開始");
+            if (BuildConfig.DEBUG) Log.d(TAG, "Step2: ファッション画像生成開始");
             String imagePrompt = buildImagePrompt(bodyAnalysis, topProduct, bottomProduct, garmentDesc);
 
             byte[] imageBytes = geminiClient.generateImageFromText(imagePrompt);
@@ -80,7 +80,7 @@ public class TryOnAgent {
             try (FileOutputStream fos = new FileOutputStream(outFile)) {
                 fos.write(imageBytes);
             }
-            Log.d(TAG, "TryOn image saved: " + outFile.getAbsolutePath() + " (" + duration + "ms)");
+            if (BuildConfig.DEBUG) Log.d(TAG, "TryOn image saved: " + outFile.getAbsolutePath() + " (" + duration + "ms)");
 
             TryOnResult result = new TryOnResult(outFile.getAbsolutePath(), null, duration);
             result.isLocalFile = true;

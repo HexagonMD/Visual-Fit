@@ -4,6 +4,7 @@ import android.os.Handler;
 import android.os.Looper;
 import android.util.Log;
 
+import com.example.cameramaltiagent.BuildConfig;
 import com.example.cameramaltiagent.model.AgentResult;
 import com.example.cameramaltiagent.model.Product;
 import com.example.cameramaltiagent.model.StyleAnalysis;
@@ -58,7 +59,7 @@ public class AgentPipeline {
                 notifyStep(callback, 1, " スタイルを解析中...");
                 StyleAnalysis analysis = styleAgent.analyze(clothingText);
                 result.styleAnalysis = analysis;
-                Log.d(TAG, "Step1 done: compound=" + analysis.isCompound
+                if (BuildConfig.DEBUG) Log.d(TAG, "Step1 done: compound=" + analysis.isCompound
                         + " top=" + analysis.topSearchQueryJa
                         + " bottom=" + analysis.bottomSearchQueryJa);
 
@@ -73,7 +74,7 @@ public class AgentPipeline {
                 Product bottomProduct = (products.size() >= 2) ? products.get(1) : null;
                 result.selectedProduct = topProduct;
                 result.bottomProduct   = bottomProduct;
-                Log.d(TAG, "Step2 done: top=" + topProduct.name
+                if (BuildConfig.DEBUG) Log.d(TAG, "Step2 done: top=" + topProduct.name
                         + (bottomProduct != null ? " bottom=" + bottomProduct.name : ""));
 
                 // ── Step 3: TryOnAgent ───────────────────────────────
@@ -89,7 +90,7 @@ public class AgentPipeline {
                             ? tryOn.failureReason : "試着画像の生成に失敗しました。";
                     throw new Exception(reason);
                 }
-                Log.d(TAG, "Step3 done in " + tryOn.durationMs + "ms isLocal=" + tryOn.isLocalFile);
+                if (BuildConfig.DEBUG) Log.d(TAG, "Step3 done in " + tryOn.durationMs + "ms isLocal=" + tryOn.isLocalFile);
 
                 // ── Step 4: StylistAgent ─────────────────────────────
                 notifyStep(callback, 4, "✨ スタイリングコメントを生成中...");
