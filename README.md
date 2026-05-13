@@ -11,7 +11,7 @@
 | 項目 | 内容 |
 |------|------|
 | アプリ名 | VirtualFit AI |
-| 対象端末 | Nexus 7 (API 23 / Android 6.0+) |
+| 対象端末 | Android 6.0 (API 23) 以上の端末 / 動作確認: Nexus 7 |
 | 言語 | Java |
 | 主要技術 | Camera2 API / Gemini API / Rakuten API / Replicate IDM-VTON / OkHttp / Gson / Glide |
 
