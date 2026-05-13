@@ -2,7 +2,7 @@
 
 「着たい服」をテキストで入力して自撮りするだけで、商品検索・バーチャル試着・コーディネートアドバイスを自動でこなす Android アプリです。
 
-4 つの役割に分かれた独立したエージェントがパイプライン上で協調動作する**マルチエージェント設計**を採用しており、各エージェントが専門タスクを担当することで柔軟な拡張が可能な構成になっています。
+処理を4つの専門クラスに役割分担した**シーケンシャルパイプライン設計**を採用しており、各ステップが独立しているため、使用する API やモデルの差し替えが容易な構成になっています。
 
 ---
 
@@ -62,18 +62,18 @@ rakuten_app_id=YOUR_RAKUTEN_APP_ID
 
 ---
 
-## マルチエージェント設計
+## パイプライン設計
 
-このアプリの中核は、4 つの専門エージェントが直列に連携する**マルチエージェントパイプライン**です。各エージェントは独立したタスクを持ち、前段の出力を受け取って処理を行い、次のエージェントへ渡します。
+処理は `AgentPipeline` が1スレッド上で以下の4ステップを順番に実行します。各ステップは独立したクラスとして実装されており、前ステップの出力を受け取って次ステップへ渡す構造です。
 
-| エージェント | 使用 API | 担当タスク |
-|------------|---------|-----------|
-| StyleAnalystAgent | Gemini 1.5 Flash | テキスト入力を構造化データ（JSON）に変換 |
-| ShoppingAgent | Rakuten Ichiba API | 商品検索・購入 URL リスト取得 |
-| TryOnAgent | Replicate IDM-VTON | 自撮り画像への服の合成（バーチャル試着） |
-| StylistAgent | Gemini 1.5 Flash (multimodal) | 試着画像をもとにスタイリングコメントを生成 |
+| ステップ | クラス | 使用 API | 担当タスク |
+|---------|--------|---------|-----------|
+| 1 | StyleAnalystAgent | Gemini 1.5 Flash | テキスト入力を構造化データ（JSON）に変換 |
+| 2 | ShoppingAgent | Rakuten Ichiba API | 商品検索・購入 URL リスト取得 |
+| 3 | TryOnAgent | Replicate IDM-VTON | 自撮り画像への服の合成（バーチャル試着） |
+| 4 | StylistAgent | Gemini 1.5 Flash (multimodal) | 試着画像をもとにスタイリングコメントを生成 |
 
-エージェントの追加・差し替えは `AgentPipeline` を編集するだけで対応でき、たとえば別の試着モデルや別のショッピング API への変更も容易です。
+各クラスの差し替えは `AgentPipeline` を編集するだけで対応でき、たとえば別の試着モデルや別のショッピング API への変更も容易です。
 
 ---
 
@@ -87,12 +87,12 @@ flowchart LR
         R([ResultActivity\n結果表示])
     end
 
-    subgraph Pipeline["マルチエージェントパイプライン (ExecutorService)"]
+    subgraph Pipeline["処理パイプライン (シングルスレッド / 順次実行)"]
         direction TB
-        SA["StyleAnalystAgent\nGemini API\nテキスト → 構造化JSON"]
-        SH["ShoppingAgent\nRakuten API\n商品検索"]
-        TO["TryOnAgent\nReplicate IDM-VTON\nバーチャル試着"]
-        ST["StylistAgent\nGemini API multimodal\nコメント生成"]
+        SA["Step1: StyleAnalystAgent\nGemini API\nテキスト → 構造化JSON"]
+        SH["Step2: ShoppingAgent\nRakuten API\n商品検索"]
+        TO["Step3: TryOnAgent\nReplicate IDM-VTON\nバーチャル試着"]
+        ST["Step4: StylistAgent\nGemini API multimodal\nコメント生成"]
 
         SA -->|StyleAnalysis| SH
         SH -->|List&lt;Product&gt;| TO
