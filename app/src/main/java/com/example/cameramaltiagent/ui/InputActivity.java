@@ -11,6 +11,7 @@ import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.bumptech.glide.Glide;
+import com.bumptech.glide.load.engine.DiskCacheStrategy;
 import com.example.cameramaltiagent.R;
 
 import java.io.File;
@@ -29,10 +30,14 @@ public class InputActivity extends AppCompatActivity {
 
         selfiePath = getIntent().getStringExtra(CameraActivity.EXTRA_SELFIE_PATH);
 
-        // 自撮りサムネイル表示
+        // 自撮りサムネイル表示（毎回同じファイル名のためGlideキャッシュを無効化して最新写真を表示）
         ImageView thumbView = findViewById(R.id.img_selfie_thumb);
         if (selfiePath != null) {
-            Glide.with(this).load(new File(selfiePath)).into(thumbView);
+            Glide.with(this)
+                    .load(new File(selfiePath))
+                    .skipMemoryCache(true)
+                    .diskCacheStrategy(DiskCacheStrategy.NONE)
+                    .into(thumbView);
         }
 
         EditText editClothing = findViewById(R.id.edit_clothing);
